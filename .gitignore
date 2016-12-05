@@ -1,1 +1,4 @@
 readme.html
+.sconsign.dblite
+**/*.pyc
+**/*~

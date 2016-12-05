@@ -1,0 +1,34 @@
+###############################################################################
+# FogDrive (https://github.com/FogDrive/FogDrive)
+# Copyright (C) 2016  Daniel Llin Ferrero
+# 
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+###############################################################################
+
+Import(['env'])
+
+SConscript(Glob('*/SConscript'), exports = 'env')
+
+srcs = Glob('*.c')
+objs = env.Object(srcs)
+
+map_name = env['fogdrive'].build_file_name + '.map'
+elf_name = env['fogdrive'].build_file_name + '.elf'
+hex_name = env['fogdrive'].build_file_name + '.hex'
+
+elf_sources = objs + Glob('*/*.obj')
+
+elf = env.Elf(elf_name, elf_sources) 
+hex = env.Hex(hex_name, elf_name)
+env.Depends(hex, elf_name)
