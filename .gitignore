@@ -2,3 +2,12 @@ readme.html
 .sconsign.dblite
 **/*.pyc
 **/*~
+
+##########################
+# QTCreator project files
+##########################
+FogDrive.config
+FogDrive.creator
+FogDrive.files
+FogDrive.includes
+FogDrive.creator.user

@@ -29,12 +29,14 @@ extern volatile char uart_string[UART_MAXSTRLEN + 1];
 
 uint8_t deviface_init(void);
 
+void deviface_putint16(uint16_t v);
+
+void deviface_putlineend(void);
+
 void deviface_putstring(char* s);
 
 void deviface_putline(char* s);
 
 void deviface_putchar( unsigned char data );
-
-void deviface_log_info(char* s);
 
 #endif // DEVIFACE_H

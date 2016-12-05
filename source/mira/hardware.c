@@ -48,32 +48,28 @@ uint8_t hardware_init(void) {
     HWMAP_HW_FIRE_DDR |= CTRLMAP_FIRE_BIT_MASK;
     // initialize the fire pin with 0 (fire off)
     HWMAP_HW_FIRE_PORT &= ~CTRLMAP_FIRE_BIT_MASK;
-
-
-    // :TODO: refactor the following block! (used to play around with the ADC
-    // use internal reference (1.1 V) and channel ADC0
-    uint8_t channel = 0;
-    ADMUX = channel | (1<<REFS1) | (1<<REFS0);
-    // activate ADC and set prescaler to 128
-    ADCSRA = (1<<ADEN) | (1<<ADPS2) | (1<<ADPS1) | (1<<ADPS0);
-    // start a first conversion (which is a initial adjustment conversion of the AVR) and wait till it's finished
-    ADCSRA |= (1<<ADSC);
-    while(ADCSRA & (1<<ADSC));
-    queue_initialize(&hw_event_queue, 2, hw_event_queue_elements);
+    // set up the hardware event queue
     queue_initialize(&hw_event_queue, 5, hw_event_queue_elements);
+
+
+
+    ADMUX |= (1<<REFS0);                         //voltage reference selction: AREF, Internal Vref turned off
+    ADMUX |= (1<<MUX3) | (1<<MUX2) | (1<<MUX1);  //input voltage selection: 1.1V (V_BG)
+    ADCSRA |= (1<<ADEN);                         //activate ADC
+
 
     return 0;
 }
 
 void hardware_fire_on(void) {
-    deviface_log_info(">Fire On");
+    deviface_putline(">Fire On");
     HWMAP_HW_FIRE_PORT = HWMAP_HW_FIRE_PORT | CTRLMAP_FIRE_BIT_MASK;
     QueueElement* e = queue_get_write_element(&hw_event_queue);
     e->bytes.a = HW__FIRE_ON;
 }
 
 void hardware_fire_off(void) {
-    deviface_log_info(">Fire Off");
+    deviface_putline(">Fire Off");
     HWMAP_HW_FIRE_PORT = HWMAP_HW_FIRE_PORT & ~CTRLMAP_FIRE_BIT_MASK;
     QueueElement* e = queue_get_write_element(&hw_event_queue);
     e->bytes.a = HW__FIRE_OFF;
@@ -83,36 +79,22 @@ void sm_bvm(void) {
     switch (sm_bvm_status) {
         case SMS_BVM_IDLE: {
             if (make_measurement == 1) {
-                ADCSRA |= (1<<ADSC);
-                sm_bvm_status = SMS_BVM_MEASURING;
-                battery_voltage_adc_ix = 0;
-            }
-            break;
-        }
-        case SMS_BVM_MEASURING: {
-            if (! (ADCSRA & (1<<ADSC))) {     // measurement done?
-                uint16_t battery_voltage_adc = ADCL;
-                battery_voltage_adc |= (ADCH << 8);
-                battery_voltage_adcs[battery_voltage_adc_ix++] = battery_voltage_adc;
-                if (battery_voltage_adc_ix == bvm_smoothing) {
-                    sm_bvm_status = SMS_BVM_CALCULATING;
-                }
+                ADCSRA |= (1<<ADSC);// start
+                while(ADCSRA & (1<<ADSC)); //await
+                uint8_t adc_low = ADCL;
+                uint8_t adc_high = ADCH;
+                uint16_t adc_result = (adc_high<<8) | adc_low; //Gesamtergebniss der ADC-Messung
+                uint16_t vcc = 1125300L / adc_result;
+                deviface_putint16(vcc);
+                deviface_putlineend();
+                uint8_t result = vcc / 20;
 
+                QueueElement* e = queue_get_write_element(&hw_event_queue);
+                e->bytes.a = HW__BATTERY_MEASURE;
+                e->bytes.b = result;
+                sm_bvm_status = SMS_BVM_IDLE;
+                make_measurement = 0;
             }
-            break;
-        }
-        case SMS_BVM_CALCULATING: {
-            uint16_t value = 0;
-            uint8_t i = 0;
-            for (i = 0; i < bvm_smoothing; i++) {
-                value += battery_voltage_adcs[i];
-            }
-            value /= bvm_smoothing;
-            QueueElement* e = queue_get_write_element(&hw_event_queue);
-            e->bytes.a = HW__BATTERY_MEASURE;
-            e->bytes.b = (value>>2);
-            sm_bvm_status = SMS_BVM_IDLE;
-            make_measurement = 0;
             break;
         }
     }

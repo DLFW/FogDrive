@@ -45,15 +45,19 @@ void deviface_putstring (char* s) {
     }
 }
 
-void deviface_putline (char* s) {
-    deviface_putstring(s);
+void deviface_putlineend(void) {
     deviface_putstring("\r\n");
 }
 
-void deviface_log_info(char* s) {
-    deviface_putstring("INFO - ");
+void deviface_putline (char* s) {
     deviface_putstring(s);
-    deviface_putstring("\r\n");
+    deviface_putlineend();
+}
+
+void deviface_putint16(uint16_t v) {
+    char value_s[6];
+    itoa(v,value_s,10);
+    deviface_putstring(value_s);
 }
 
 ISR(USART_RX_vect) {
