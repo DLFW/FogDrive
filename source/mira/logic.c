@@ -23,10 +23,10 @@
 #include "hardware.h"
 #include "ui.h"
 
-static uint8_t fire_button_is_pressed = 0;
-static uint8_t fire_button_was_pressed = 0;
+uint16_t logic_main_cycle_counter;
 
 uint8_t logic_init(void) {
+    logic_main_cycle_counter = 0;
     return 0;
 }
 
@@ -89,7 +89,20 @@ void logic_loop (void) {
             if (strcmp(in_string, "bvm") == 0) {
                 do_battery_measurement();
             }
+            if (strcmp(in_string, "cyc ui") == 0) {
+                uint16_t o = ui_timer_cycle_covered_main_cycles;
+                deviface_putstring("Main cycles per UI timer ISR: ");
+                deviface_put_uint16(o);
+                deviface_putlineend();
+            }
+            if (strcmp(in_string, "cyc main") == 0) {
+                uint16_t o = logic_main_cycle_counter;
+                deviface_putstring("Main cycle counter: ");
+                deviface_put_uint16(o);
+                deviface_putlineend();
+            }
         }
+        logic_main_cycle_counter++;
     }
     return 0;
 }

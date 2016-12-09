@@ -26,6 +26,7 @@ typedef union {
       uint8_t a;
       uint8_t b;
   } bytes;
+  unsigned char character;
   uint16_t word;
 } QueueElement;
 

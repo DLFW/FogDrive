@@ -28,13 +28,21 @@
 #error Systematic error of baud rate to high (> 1%). Aborting.
 #endif
 
-uint8_t uart_init_8_plus_1(void) {
+void uart_init_8_plus_1(void) {
     UBRR0H = UBRR_VAL >> 8;
     UBRR0L = UBRR_VAL & 0xFF;
     UCSR0B |= (1<<TXEN0) | (1<<RXEN0) | (1<<RXCIE0);  // enable send, enable receive, enable receive interrupt
     UCSR0C = (1<<UCSZ01)| (1<<UCSZ00)|(1<<UCPOL0);    // asynch 8 bit + 1 stop bit
-    return 0;
 }
 
+void ui_timer_init_10ms_overflow(void) {
+    TCCR0B = (1<<CS02)|(1<<CS00);  // prescaler 1024
+    TIMSK0 = (1<<TOIE0);
+    HWMAP_UI_TIMER_CMD_REINIT_FOR_10ms;
+}
 
-
+void ui_timer_init_200us_overflow(void) {
+    TCCR0B = (1<<CS01)|(1<<CS00);  // prescaler 64
+    TIMSK0 = (1<<TOIE0);
+    HWMAP_UI_TIMER_CMD_REINIT_FOR_200us;
+}

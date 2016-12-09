@@ -85,7 +85,7 @@ void sm_bvm(void) {
                 uint8_t adc_high = ADCH;
                 uint16_t adc_result = (adc_high<<8) | adc_low; //Gesamtergebniss der ADC-Messung
                 uint16_t vcc = 1125300L / adc_result;
-                deviface_putint16(vcc);
+                deviface_put_uint16(vcc);
                 deviface_putlineend();
                 uint8_t result = vcc / 20;
 

@@ -16,25 +16,23 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef UI_H
-#define UI_H
+#ifndef LED_H
+#define LED_H
+
 #include <avr/io.h>
-#include "queue.h"
 
-#define UI__FIRE_BUTTON_PRESSED 1
-#define UI__FIRE_BUTTON_RELEASED 2
+typedef struct {
+    uint8_t duty_cycle_count;
+    uint8_t* p_port;
+    uint8_t pin_mask;
+} LED;
 
-// A queue that transports user interface inputs (low level command from the user) to the logic module
-extern Queue ui_event_queue;
+extern uint8_t led_pwm_cycle_counter;
 
-extern uint8_t ui_timer_cycle_covered_main_cycles;
+void led_init_led(LED* led);
 
-uint8_t ui_init(void);
+void led_step(LED* led);
 
-void ui_input_step(void);
+void led_set_brightness(LED* led, uint8_t brightness);
 
-void ui_fire_is_on(void);
-
-void ui_fire_is_off(void);
-
-#endif // UI_H
+#endif // LED_H

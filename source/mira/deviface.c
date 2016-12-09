@@ -19,6 +19,7 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <string.h>
+#include "queue.h"
 #include "deviface.h"
 #include MCUHEADER
 
@@ -27,8 +28,11 @@ volatile uint8_t uart_str_count = 0;
 volatile char uart_string[UART_MAXSTRLEN + 1] = "";
 
 
-uint8_t deviface_init(void) {
-    return uart_init_8_plus_1();
+//Queue character_output_queue;
+//QueueElement character_output_queue_array[30];
+
+void deviface_init(void) {
+    uart_init_8_plus_1();
 }
 
 void deviface_putchar( unsigned char data ) {
@@ -54,9 +58,15 @@ void deviface_putline (char* s) {
     deviface_putlineend();
 }
 
-void deviface_putint16(uint16_t v) {
+void deviface_put_uint8(uint8_t v) {
+    char value_s[4];
+    utoa(v,value_s,10);
+    deviface_putstring(value_s);
+}
+
+void deviface_put_uint16(uint16_t v) {
     char value_s[6];
-    itoa(v,value_s,10);
+    utoa(v,value_s,10);
     deviface_putstring(value_s);
 }
 

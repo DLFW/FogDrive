@@ -28,4 +28,8 @@ void logic_loop (void);
 
 void logic_firebutton_pressed(void);
 
+
+extern uint16_t logic_main_cycle_counter;
+
+
 #endif // LOGIC_H

@@ -27,9 +27,11 @@ extern volatile uint8_t uart_str_complete;
 extern volatile uint8_t uart_str_count;
 extern volatile char uart_string[UART_MAXSTRLEN + 1];
 
-uint8_t deviface_init(void);
+void deviface_init(void);
 
-void deviface_putint16(uint16_t v);
+void deviface_put_uint16(uint16_t v);
+
+void deviface_put_uint8(uint8_t v);
 
 void deviface_putlineend(void);
 

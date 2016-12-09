@@ -36,6 +36,16 @@
 #define HWMAP_UI_OUTPIN_PORT    PORTB
 #define HWMAP_UI_OUTPIN_0_IX    2
 
+/**************************************************
+ * UI timer
+ *************************************************/
+#define HWMAP_UI_TIMER_ISR      TIMER0_OVF_vect
+#define HWMAP_UI_TIMER_CMD_REINIT_FOR_10ms TCNT0 = (uint8_t)(int16_t)-(F_CPU / 1024 * 10e-3 + 0.5);
+#define T0_COUNTER_INIT_VALUE (256-(F_CPU / 64 * 200 * 10e-6 + 0.5))
+#define HWMAP_UI_TIMER_CMD_REINIT_FOR_200us TCNT0 = T0_COUNTER_INIT_VALUE;
+// Function that initializes the UI timer for causing the overflow interupt every 10 ms
+void ui_timer_init_10ms_overflow(void);
+void ui_timer_init_200us_overflow(void);
 
 /**************************************************
  * UART
@@ -47,7 +57,7 @@
 // Command that waits until the charbuffer is empty and can be used to send a single character
 #define MCUMAP_UART_CMD_AWAIT_EMPTY_CHARBUFFER  while ( !( UCSR0A & (1<<UDRE0)) );
 // Function that inititializes the UART with 8 data and one stop bit.
-uint8_t uart_init_8_plus_1(void);
+void uart_init_8_plus_1(void);
 
 /**************************************************
  * Hardware
