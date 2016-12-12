@@ -23,6 +23,8 @@
 #include "hardware.h"
 #include "ui.h"
 
+#define foo (256-(F_CPU / 256 * 10e-3 + 0.5))
+
 uint16_t logic_main_cycle_counter;
 
 uint8_t logic_init(void) {
@@ -36,12 +38,14 @@ void logic_loop (void) {
     deviface_putline("It is licensed under the GPLv3 (see <http://www.gnu.org/licenses/#GPL>).");
     deviface_putline("\r\nHi! This is the Mira 0 FogDrive.\r\n");
     ui_fire_is_on();
-    _delay_ms(100);
+    _delay_ms(200);
     ui_fire_is_off();
-    _delay_ms(100);
+    _delay_ms(200);
     ui_fire_is_on();
-    _delay_ms(100);
+    _delay_ms(200);
     ui_fire_is_off();
+    deviface_put_uint8(foo);
+    deviface_putlineend();
     while(1) {
 
         ui_input_step();

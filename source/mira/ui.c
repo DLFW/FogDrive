@@ -55,7 +55,7 @@ Queue low_level_event_queue;
  */
 QueueElement low_level_event_queue_array[5];
 
-LED led;
+//LED led;
 
 uint8_t ui_timer_cycle_covered_main_cycles;
 
@@ -65,8 +65,8 @@ uint8_t ui_timer_cycle_covered_main_cycles;
  * @param value 0 for off, anything else for on
  */
 void set_led(uint8_t value) {
-    led_set_brightness(&led, value);
-    return;
+//    led_set_brightness(&led, value);
+//    return;
     if (value) {
         HWMAP_UI_OUTPIN_PORT = HWMAP_UI_OUTPIN_PORT | OUTPIN_0_MASK;
     } else {
@@ -88,21 +88,21 @@ uint8_t ui_init(void) {
     HWMAP_UI_OUTPIN_PORT &= ~OUTPIN_ALL_MASK;           // initialize all output pins (set them off)
 
     // init the ui timer
-    ui_timer_init_200us_overflow();
+    ui_timer2_init_10ms_overflow();
 
-    // init LED
-    led.p_port = &HWMAP_UI_OUTPIN_PORT;
-    led.pin_mask = OUTPIN_0_MASK;
-    led.duty_cycle_count = 0;
+//    // init LED
+//    led.p_port = &HWMAP_UI_OUTPIN_PORT;
+//    led.pin_mask = OUTPIN_0_MASK;
+//    led.duty_cycle_count = 0;
 
     return 0;
 }
 
 /**
   * ISR for timer zero.
-  * Configured to be called every 200us.
+  * Configured to be called every 10ms.
   */
-ISR( HWMAP_UI_TIMER_ISR ) {
+ISR( HWMAP_UI2_TIMER_ISR ) {
     // basic debouncing strategy based on http://www.mikrocontroller.net/articles/Entprellung#Timer-Verfahren_.28nach_Peter_Dannegger.29
     // debouncing counter bytes
     static uint8_t ct0 = 0xFF, ct1 = 0xFF;
@@ -110,71 +110,59 @@ ISR( HWMAP_UI_TIMER_ISR ) {
     static uint8_t switch_states = 0;
     // latest changed status (1 = changed, 0 = unchanged, each bit represents one switch (bit) from the input register (PIN))
     static uint8_t changed_switches = 0;
-    // counter that just counts to fifty times and is resetted then to identify each 50th call of this ISR -> corresponds to 10 ms
-    static uint8_t _10ms_counter = 0;
     // counter that just counts to five times and is resetted then to identify each 5th cycle of the 10ms branch
     static uint8_t _50ms_counter = 0;
     // stores the difference of the main cycle counter between each call and the former of this ISR
     static uint8_t last_main_cycle_counter = 0;
 
-    /*
-     * High frequent (each 200us)
-     */
-
     // initialize the timer again to get the wanted trigger frequency for this ISR
-    //HWMAP_UI_TIMER_CMD_REINIT_FOR_200us;
-    TCNT0 = 254;
-    // increment LED PWM counter
-    led_pwm_cycle_counter++;
-    // led PWM step
-    led_step(&led);
+    HWMAP_UI_TIMER2_CMD_REINIT_FOR_10ms;
+//    TCNT2 = 220;
 
-    if (++_10ms_counter == 50) {
-        _10ms_counter = 0;
+//    // increment LED PWM counter
+//    led_pwm_cycle_counter++;
+//    // led PWM step
+//    led_step(&led);
+
+    // updating main cyle counter diff
+    if (logic_main_cycle_counter > last_main_cycle_counter) {
+        ui_timer_cycle_covered_main_cycles = logic_main_cycle_counter - last_main_cycle_counter;
+    }
+    last_main_cycle_counter = ui_timer_cycle_covered_main_cycles;
+
+    // here we go...
+    // debouncing:
+    // set those bits in i to 1 which represents a switch whose actual state is different from the latest unbounced state (key_state)
+    uint8_t i = switch_states ^ ~HWMAP_UI_SWITCH_PIN;
+    // ct0 and ct1 bytes: count the number of subsequent differences between actual and last debounced state or set back it back to 0 if it's equal.
+    ct0 = ~( ct0 & i );
+    ct1 = ct0 ^ (ct1 & i);
+    // for each switch that had 4 times an actual state different from the last debounced state, set the corresponding bit in i to 1
+    i &= ct0 & ct1;
+    // set the most current _debounced_ state of all switches
+    switch_states ^= i;
+    // create a bitmask of all _relevant_ switches that have changed
+    changed_switches = i & ALL_SWITCHES;
+
+    // check for concrete switch changes:
+    // check for switch 0
+    if (CTRLMAP_SWITCH_0_MASK & changed_switches) {
+        QueueElement* e = queue_get_write_element(&low_level_event_queue);
+        if (CTRLMAP_SWITCH_0_MASK & switch_states) {
+            e->bytes.a = LLE_SWITCH_PRESSED;
+        } else {
+            e->bytes.a = LLE_SWITCH_RELEASED;
+        }
+        e->bytes.b = HWMAP_UI_SWITCH_0_IX;
+    }
+
+    if (++_50ms_counter == 5) {
+        _50ms_counter = 0;
         /*
-         * Middle frequent (each 10ms)
+         * Low frequent (each 50ms)
          */
-
-        // updating main cyle counter diff
-        if (logic_main_cycle_counter > last_main_cycle_counter) {
-            ui_timer_cycle_covered_main_cycles = logic_main_cycle_counter - last_main_cycle_counter;
-        }
-        last_main_cycle_counter = ui_timer_cycle_covered_main_cycles;
-
-        // here we go...
-        // debouncing:
-        // set those bits in i to 1 which represents a switch whose actual state is different from the latest unbounced state (key_state)
-        uint8_t i = switch_states ^ ~HWMAP_UI_SWITCH_PIN;
-        // ct0 and ct1 bytes: count the number of subsequent differences between actual and last debounced state or set back it back to 0 if it's equal.
-        ct0 = ~( ct0 & i );
-        ct1 = ct0 ^ (ct1 & i);
-        // for each switch that had 4 times an actual state different from the last debounced state, set the corresponding bit in i to 1
-        i &= ct0 & ct1;
-        // set the most current _debounced_ state of all switches
-        switch_states ^= i;
-        // create a bitmask of all _relevant_ switches that have changed
-        changed_switches = i & ALL_SWITCHES;
-
-        // check for concrete switch changes:
-        // check for switch 0
-        if (CTRLMAP_SWITCH_0_MASK & changed_switches) {
-            QueueElement* e = queue_get_write_element(&low_level_event_queue);
-            if (CTRLMAP_SWITCH_0_MASK & switch_states) {
-                e->bytes.a = LLE_SWITCH_PRESSED;
-            } else {
-                e->bytes.a = LLE_SWITCH_RELEASED;
-            }
-            e->bytes.b = HWMAP_UI_SWITCH_0_IX;
-        }
-
-        if (++_50ms_counter == 5) {
-            _50ms_counter = 0;
-            /*
-             * Low frequent (each 50ms)
-             */
-            QueueElement* e = queue_get_write_element(&low_level_event_queue);
-            e->bytes.a = LLE_50MS_PULSE;
-        }
+        QueueElement* e = queue_get_write_element(&low_level_event_queue);
+        e->bytes.a = LLE_50MS_PULSE;
     }
 }
 

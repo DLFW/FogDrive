@@ -23,6 +23,10 @@ FogDrives = [
     Mira(
         mcu = "atmega328p",
         frequency = 1000000
+    ),
+    Mira(
+        mcu = "atmega328p",
+        frequency = 8000000
     )
 ]
 

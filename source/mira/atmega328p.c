@@ -46,3 +46,9 @@ void ui_timer_init_200us_overflow(void) {
     TIMSK0 = (1<<TOIE0);
     HWMAP_UI_TIMER_CMD_REINIT_FOR_200us;
 }
+
+void ui_timer2_init_10ms_overflow(void) {
+    TCCR2B = (1<<CS22)|(1<<CS21);  // prescaler 256
+    TIMSK2 = (1<<TOIE2);
+    HWMAP_UI_TIMER2_CMD_REINIT_FOR_10ms;
+}
