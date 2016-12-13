@@ -27,7 +27,7 @@
 #define HWMAP_UI_SWITCH_DDR      DDRB
 #define HWMAP_UI_SWITCH_PORT     PORTB
 #define HWMAP_UI_SWITCH_PIN      PINB
-#define HWMAP_UI_SWITCH_0_IX     1
+#define HWMAP_UI_SWITCH_0_IX     3
 
 /**************************************************
  * UI output

@@ -23,6 +23,7 @@
 
 #define UI__FIRE_BUTTON_PRESSED 1
 #define UI__FIRE_BUTTON_RELEASED 2
+#define UI__50MS_PULSE 3
 
 // A queue that transports user interface inputs (low level command from the user) to the logic module
 extern Queue ui_event_queue;

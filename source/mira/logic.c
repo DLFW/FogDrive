@@ -60,6 +60,9 @@ void logic_loop (void) {
             if (e->bytes.a == UI__FIRE_BUTTON_RELEASED) {
                 hardware_fire_off();
             }
+            if (e->bytes.a == UI__50MS_PULSE) {
+                OCR0A = OCR0A + 3;
+            }
         }
         //process HW event
         e = queue_get_read_element(&hw_event_queue);
@@ -104,6 +107,16 @@ void logic_loop (void) {
                 deviface_putstring("Main cycle counter: ");
                 deviface_put_uint16(o);
                 deviface_putlineend();
+            }
+            if (in_string[0]=='l' && in_string[1]=='0' && in_string[2]==' ') {
+                char value[7] = "";
+                strcpy(value, in_string + 3 );
+//                deviface_putstring(value);
+//                deviface_putlineend();
+                uint8_t v = (uint8_t) atoi(value);
+                OCR0A = v;
+//                deviface_put_uint8(v);
+//                deviface_putlineend();
             }
         }
         logic_main_cycle_counter++;

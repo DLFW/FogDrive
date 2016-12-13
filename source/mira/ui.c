@@ -90,6 +90,19 @@ uint8_t ui_init(void) {
     // init the ui timer
     ui_timer2_init_10ms_overflow();
 
+    //LED PWM
+    DDRB |= (1<<1);
+    DDRD |= (1<<6);
+//    PORTB |= (1<<1);
+    // Configure output pin
+    TCCR0A = (1<<WGM01) | (1<<WGM00) | (1<<COM0A1);   // Fast PWM, single slope, count from 0 to 255 (not only till compare), non-inverting
+    TCCR0B = 1;//(1<<CS00);                 // Internal clock, no prescaling
+    OCR0A  = 240;                         // LED init value: off --- ne , ist das alternativ-top!
+
+
+    //COM0A[1:0] must set polarity to high
+
+
 //    // init LED
 //    led.p_port = &HWMAP_UI_OUTPIN_PORT;
 //    led.pin_mask = OUTPIN_0_MASK;
@@ -178,7 +191,8 @@ void ui_input_step(void) {
             e->bytes.a = UI__FIRE_BUTTON_RELEASED;
         }
         else if (low_level_event_e->bytes.a == LLE_50MS_PULSE) {
-
+            QueueElement* e = queue_get_write_element(&ui_event_queue);
+            e->bytes.a = UI__50MS_PULSE;
         }
     }
 }
