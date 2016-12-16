@@ -39,15 +39,12 @@
 /**************************************************
  * UI timer
  *************************************************/
-#define HWMAP_UI_TIMER_ISR      TIMER0_OVF_vect
-#define HWMAP_UI2_TIMER_ISR     TIMER2_OVF_vect
-#define HWMAP_UI_TIMER_CMD_REINIT_FOR_10ms TCNT0 = (uint8_t)(int16_t)-(F_CPU / 1024 * 10e-3 + 0.5);
-#define HWMAP_UI_TIMER2_CMD_REINIT_FOR_10ms TCNT2 = (256-(F_CPU / 256 * 10e-3 + 0.5));
-#define T0_COUNTER_INIT_VALUE (256-(F_CPU / 64 * 200 * 10e-6 + 0.5))
-#define HWMAP_UI_TIMER_CMD_REINIT_FOR_200us TCNT0 = T0_COUNTER_INIT_VALUE;
-// Function that initializes the UI timer for causing the overflow interupt every 10 ms
+#define HWMAP_UI_TIMER_ISR     TIMER2_OVF_vect
+#define HWMAP_UI_TIMER_CMD_REINIT_FOR_10ms TCNT2 = (256-(F_CPU / 256 * 10e-3 + 0.5));
+#define MCU_UI_PWM_A_CR OCR0A
+// Function that initializes the UI timers and PWMs
 void ui_timer_init_10ms_overflow(void);
-void ui_timer_init_200us_overflow(void);
+void mcu_init_ui_double_compare_timer_for_fast_pwm_1ms(void);
 
 /**************************************************
  * UART

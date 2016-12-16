@@ -72,14 +72,11 @@ uint8_t ui_init(void) {
     HWMAP_UI_OUTPIN_PORT &= ~OUTPIN_ALL_MASK;           // initialize all output pins (set them off)
 
     // init the ui timer
-    ui_timer2_init_10ms_overflow();
+    ui_timer_init_10ms_overflow();
 
     //LED PWM
-
-    DDRD |= (1<<6);
-    TCCR0A = (1<<WGM01) | (1<<WGM00) | (1<<COM0A1);   // Fast PWM, single slope, count from 0 to 255 (not only till compare), non-inverting
-    TCCR0B = (1<<CS00);                               // Internal clock, no prescaling
-    led_init_led(&led, &OCR0A);
+    mcu_init_ui_double_compare_timer_for_fast_pwm_1ms();
+    led_init_led(&led, &MCU_UI_PWM_A_CR);
 
     return 0;
 }
@@ -88,9 +85,9 @@ uint8_t ui_init(void) {
   * ISR for timer zero.
   * Configured to be called every 10ms.
   */
-ISR( HWMAP_UI2_TIMER_ISR ) {
+ISR( HWMAP_UI_TIMER_ISR ) {
     // initialize the timer again to get the wanted trigger frequency for this ISR
-    HWMAP_UI_TIMER2_CMD_REINIT_FOR_10ms;
+    HWMAP_UI_TIMER_CMD_REINIT_FOR_10ms;
 
     // debouncing counter bytes
     static uint8_t ct0 = 0xFF, ct1 = 0xFF;

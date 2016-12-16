@@ -23,8 +23,6 @@
 #include "hardware.h"
 #include "ui.h"
 
-#define foo (256-(F_CPU / 256 * 10e-3 + 0.5))
-
 uint16_t logic_main_cycle_counter;
 
 uint8_t logic_init(void) {
@@ -44,9 +42,6 @@ void logic_loop (void) {
     ui_fire_is_on();
     _delay_ms(200);
     ui_fire_is_off();
-    deviface_put_uint8(foo);
-    deviface_putlineend();
-    uint8_t killme = 0;
     while(1) {
         ui_input_step();
         hardware_step();

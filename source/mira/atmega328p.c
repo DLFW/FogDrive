@@ -36,19 +36,14 @@ void uart_init_8_plus_1(void) {
 }
 
 void ui_timer_init_10ms_overflow(void) {
-    TCCR0B = (1<<CS02)|(1<<CS00);  // prescaler 1024
-    TIMSK0 = (1<<TOIE0);
+    TCCR2B = (1<<CS22)|(1<<CS21);  // prescaler 256
+    TIMSK2 = (1<<TOIE2);
     HWMAP_UI_TIMER_CMD_REINIT_FOR_10ms;
 }
 
-void ui_timer_init_200us_overflow(void) {
-    TCCR0B = (1<<CS01)|(1<<CS00);  // prescaler 64
-    TIMSK0 = (1<<TOIE0);
-    HWMAP_UI_TIMER_CMD_REINIT_FOR_200us;
-}
-
-void ui_timer2_init_10ms_overflow(void) {
-    TCCR2B = (1<<CS22)|(1<<CS21);  // prescaler 256
-    TIMSK2 = (1<<TOIE2);
-    HWMAP_UI_TIMER2_CMD_REINIT_FOR_10ms;
+void mcu_init_ui_double_compare_timer_for_fast_pwm_1ms(void) {
+    //TODO: it's only 1ms with 1MHz frequency: refactor name or function
+    DDRD |= (1<<6);                                   // Set the PIN of PWM channel A as output
+    TCCR0A = (1<<WGM01) | (1<<WGM00) | (1<<COM0A1);   // Fast PWM, single slope, count from 0 to 255 (not only till compare), non-inverting
+    TCCR0B = (1<<CS00);                               // Internal clock, no prescaling
 }
