@@ -28,8 +28,6 @@
 // A queue that transports user interface inputs (low level command from the user) to the logic module
 extern Queue ui_event_queue;
 
-extern uint8_t ui_timer_cycle_covered_main_cycles;
-
 uint8_t ui_init(void);
 
 void ui_input_step(void);

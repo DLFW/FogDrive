@@ -46,8 +46,8 @@ void logic_loop (void) {
     ui_fire_is_off();
     deviface_put_uint8(foo);
     deviface_putlineend();
+    uint8_t killme = 0;
     while(1) {
-
         ui_input_step();
         hardware_step();
 
@@ -61,7 +61,7 @@ void logic_loop (void) {
                 hardware_fire_off();
             }
             if (e->bytes.a == UI__50MS_PULSE) {
-                OCR0A = OCR0A + 3;
+                // pass
             }
         }
         //process HW event
@@ -96,28 +96,28 @@ void logic_loop (void) {
             if (strcmp(in_string, "bvm") == 0) {
                 do_battery_measurement();
             }
-            if (strcmp(in_string, "cyc ui") == 0) {
-                uint16_t o = ui_timer_cycle_covered_main_cycles;
-                deviface_putstring("Main cycles per UI timer ISR: ");
-                deviface_put_uint16(o);
-                deviface_putlineend();
-            }
+//            if (strcmp(in_string, "cyc ui") == 0) {
+//                uint16_t o = ui_timer_cycle_covered_main_cycles;
+//                deviface_putstring("Main cycles per UI timer ISR: ");
+//                deviface_put_uint16(o);
+//                deviface_putlineend();
+//            }
             if (strcmp(in_string, "cyc main") == 0) {
                 uint16_t o = logic_main_cycle_counter;
                 deviface_putstring("Main cycle counter: ");
                 deviface_put_uint16(o);
                 deviface_putlineend();
             }
-            if (in_string[0]=='l' && in_string[1]=='0' && in_string[2]==' ') {
-                char value[7] = "";
-                strcpy(value, in_string + 3 );
-//                deviface_putstring(value);
-//                deviface_putlineend();
-                uint8_t v = (uint8_t) atoi(value);
-                OCR0A = v;
-//                deviface_put_uint8(v);
-//                deviface_putlineend();
-            }
+//            if (in_string[0]=='l' && in_string[1]=='0' && in_string[2]==' ') {
+//                char value[7] = "";
+//                strcpy(value, in_string + 3 );
+////                deviface_putstring(value);
+////                deviface_putlineend();
+//                uint8_t v = (uint8_t) atoi(value);
+//                set_led(v);
+////                deviface_put_uint8(v);
+////                deviface_putlineend();
+//            }
         }
         logic_main_cycle_counter++;
     }

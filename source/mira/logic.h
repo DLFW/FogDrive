@@ -28,6 +28,8 @@ void logic_loop (void);
 
 void logic_firebutton_pressed(void);
 
+void set_led(uint8_t value);
+
 
 extern uint16_t logic_main_cycle_counter;
 

@@ -22,6 +22,7 @@
 #include "logic.h"
 #include "deviface.h"
 #include "led.h"
+#include <avr/pgmspace.h>
 #include MCUHEADER
 
 // Bit mask for switch 0
@@ -55,24 +56,7 @@ Queue low_level_event_queue;
  */
 QueueElement low_level_event_queue_array[5];
 
-//LED led;
-
-uint8_t ui_timer_cycle_covered_main_cycles;
-
-/**
- * Sets the led value.
- * For future compatibility, use value = 255 for on.
- * @param value 0 for off, anything else for on
- */
-void set_led(uint8_t value) {
-//    led_set_brightness(&led, value);
-//    return;
-    if (value) {
-        HWMAP_UI_OUTPIN_PORT = HWMAP_UI_OUTPIN_PORT | OUTPIN_0_MASK;
-    } else {
-        HWMAP_UI_OUTPIN_PORT = HWMAP_UI_OUTPIN_PORT & ~OUTPIN_0_MASK;
-    }
-}
+LED led;
 
 uint8_t ui_init(void) {
     // init queues
@@ -91,22 +75,11 @@ uint8_t ui_init(void) {
     ui_timer2_init_10ms_overflow();
 
     //LED PWM
-    DDRB |= (1<<1);
+
     DDRD |= (1<<6);
-//    PORTB |= (1<<1);
-    // Configure output pin
     TCCR0A = (1<<WGM01) | (1<<WGM00) | (1<<COM0A1);   // Fast PWM, single slope, count from 0 to 255 (not only till compare), non-inverting
-    TCCR0B = 1;//(1<<CS00);                 // Internal clock, no prescaling
-    OCR0A  = 240;                         // LED init value: off --- ne , ist das alternativ-top!
-
-
-    //COM0A[1:0] must set polarity to high
-
-
-//    // init LED
-//    led.p_port = &HWMAP_UI_OUTPIN_PORT;
-//    led.pin_mask = OUTPIN_0_MASK;
-//    led.duty_cycle_count = 0;
+    TCCR0B = (1<<CS00);                               // Internal clock, no prescaling
+    led_init_led(&led, &OCR0A);
 
     return 0;
 }
@@ -116,7 +89,9 @@ uint8_t ui_init(void) {
   * Configured to be called every 10ms.
   */
 ISR( HWMAP_UI2_TIMER_ISR ) {
-    // basic debouncing strategy based on http://www.mikrocontroller.net/articles/Entprellung#Timer-Verfahren_.28nach_Peter_Dannegger.29
+    // initialize the timer again to get the wanted trigger frequency for this ISR
+    HWMAP_UI_TIMER2_CMD_REINIT_FOR_10ms;
+
     // debouncing counter bytes
     static uint8_t ct0 = 0xFF, ct1 = 0xFF;
     // latest debounced switch state (each bit represents one switch (bit) from the input register (PIN))
@@ -128,23 +103,10 @@ ISR( HWMAP_UI2_TIMER_ISR ) {
     // stores the difference of the main cycle counter between each call and the former of this ISR
     static uint8_t last_main_cycle_counter = 0;
 
-    // initialize the timer again to get the wanted trigger frequency for this ISR
-    HWMAP_UI_TIMER2_CMD_REINIT_FOR_10ms;
-//    TCNT2 = 220;
-
-//    // increment LED PWM counter
-//    led_pwm_cycle_counter++;
-//    // led PWM step
-//    led_step(&led);
-
-    // updating main cyle counter diff
-    if (logic_main_cycle_counter > last_main_cycle_counter) {
-        ui_timer_cycle_covered_main_cycles = logic_main_cycle_counter - last_main_cycle_counter;
-    }
-    last_main_cycle_counter = ui_timer_cycle_covered_main_cycles;
-
     // here we go...
     // debouncing:
+    // basic debouncing strategy based on http://www.mikrocontroller.net/articles/Entprellung#Timer-Verfahren_.28nach_Peter_Dannegger.29
+    //
     // set those bits in i to 1 which represents a switch whose actual state is different from the latest unbounced state (key_state)
     uint8_t i = switch_states ^ ~HWMAP_UI_SWITCH_PIN;
     // ct0 and ct1 bytes: count the number of subsequent differences between actual and last debounced state or set back it back to 0 if it's equal.
@@ -171,9 +133,6 @@ ISR( HWMAP_UI2_TIMER_ISR ) {
 
     if (++_50ms_counter == 5) {
         _50ms_counter = 0;
-        /*
-         * Low frequent (each 50ms)
-         */
         QueueElement* e = queue_get_write_element(&low_level_event_queue);
         e->bytes.a = LLE_50MS_PULSE;
     }
@@ -198,9 +157,9 @@ void ui_input_step(void) {
 }
 
 void ui_fire_is_on(void) {
-    set_led(128);
+    led_set_brightness(&led, 99);
 }
 
 void ui_fire_is_off(void) {
-    set_led(0);
+    led_set_brightness(&led, 0);
 }

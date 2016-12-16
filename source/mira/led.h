@@ -20,16 +20,31 @@
 #define LED_H
 
 #include <avr/io.h>
+#include <avr/pgmspace.h>
+
+static const uint8_t led_pwmtable[100] PROGMEM =
+{
+    0,    0,    0,    0,    0,    1,    1,    1,
+    2,    2,    3,    3,    4,    4,    5,    6,
+    7,    8,    8,    9,   10,   11,   13,   14,
+    15,   16,   18,   19,   20,   22,   23,   25,
+    27,   28,   30,   32,   34,   36,   38,   40,
+    42,   44,   46,   48,   50,   53,   55,   57,
+    60,   62,   65,   68,   70,   73,   76,   79,
+    82,   85,   88,   91,   94,   97,  100,  103,
+    107,  110,  113,  117,  120,  124,  127,  131,
+    135,  139,  142,  146,  150,  154,  158,  162,
+    167,  171,  175,  179,  184,  188,  192,  197,
+    201,  206,  211,  215,  220,  225,  230,  235,
+    240,  245,  250,  255
+};
+
 
 typedef struct {
-    uint8_t duty_cycle_count;
-    uint8_t* p_port;
-    uint8_t pin_mask;
+    uint8_t* _compare_register_address;
 } LED;
 
-extern uint8_t led_pwm_cycle_counter;
-
-void led_init_led(LED* led);
+void led_init_led(LED* led, uint8_t* compare_register_address);
 
 void led_step(LED* led);
 

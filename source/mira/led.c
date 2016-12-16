@@ -20,31 +20,17 @@
 #import "deviface.h"
 #include MCUHEADER
 
-uint8_t led_pwm_cycle_counter;
-
-//:TODO: remove
-void led_init_led(LED* led) {
-
+void led_init_led(LED* led, uint8_t *compare_register_address) {
+    led->_compare_register_address = compare_register_address;
 }
 
 void led_step(LED* led) {
-    if (led->duty_cycle_count <= led_pwm_cycle_counter) {
-        //led->p_port = *(led->p_port) | led->pin_mask;
-        HWMAP_UI_OUTPIN_PORT = HWMAP_UI_OUTPIN_PORT & ~led->pin_mask;
-    } else {
-        //led->p_port = *(led->p_port) & ~led->pin_mask;
-        HWMAP_UI_OUTPIN_PORT = HWMAP_UI_OUTPIN_PORT | led->pin_mask;
-    }
+
 }
 
 void led_set_brightness(LED* led, uint8_t brightness) {
-//    deviface_putstring("--\r\nb: ");
-//    deviface_put_uint8(led->duty_cycle_count);
-//    deviface_putstring(" to ");
-    led->duty_cycle_count = brightness;
-//    deviface_put_uint8(led->duty_cycle_count);
-//    deviface_putlineend();
-//    deviface_putstring("c: ");
-//    deviface_put_uint8(led_pwm_cycle_counter);
-//    deviface_putlineend();
+    if (brightness > 99) {
+        brightness = 99;
+    }
+    *(led->_compare_register_address) = pgm_read_byte(& led_pwmtable[brightness]);
 }
