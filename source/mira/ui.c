@@ -22,6 +22,7 @@
 #include "logic.h"
 #include "deviface.h"
 #include "led.h"
+#include "button.h"
 #include <avr/pgmspace.h>
 #include MCUHEADER
 
@@ -58,6 +59,8 @@ QueueElement low_level_event_queue_array[5];
 
 LED led;
 
+Button button;
+
 uint8_t ui_init(void) {
     // init queues
     queue_initialize(&ui_event_queue, 5, ui_event_queue_elements);
@@ -74,9 +77,12 @@ uint8_t ui_init(void) {
     // init the ui timer
     ui_timer_init_10ms_overflow();
 
-    //LED PWM
+    // init LED PWM
     mcu_init_ui_double_compare_timer_for_fast_pwm_1ms();
     led_init_led(&led, &MCU_UI_PWM_A_CR);
+
+    // init button logic
+    button_init(&button);
 
     return 0;
 }
@@ -141,15 +147,26 @@ void ui_input_step(void) {
         if (low_level_event_e->bytes.a == LLE_SWITCH_PRESSED) {
             QueueElement* e = queue_get_write_element(&ui_event_queue);
             e->bytes.a = UI__FIRE_BUTTON_PRESSED;
+            button_pressed(&button);
         }
         else if (low_level_event_e->bytes.a == LLE_SWITCH_RELEASED) {
             QueueElement* e = queue_get_write_element(&ui_event_queue);
             e->bytes.a = UI__FIRE_BUTTON_RELEASED;
+            button_released(&button);
         }
         else if (low_level_event_e->bytes.a == LLE_50MS_PULSE) {
             QueueElement* e = queue_get_write_element(&ui_event_queue);
             e->bytes.a = UI__50MS_PULSE;
+            button_step(&button);
         }
+    }
+    QueueElement* button_event = queue_get_read_element(&(button.button_event_queue));
+    if (button_event != 0) {
+        deviface_putstring("Button: ");
+        deviface_put_uint8(button_event->bytes.a);
+        deviface_putstring(" - ");
+        deviface_put_uint8(button_event->bytes.b);
+        deviface_putlineend();
     }
 }
 

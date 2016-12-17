@@ -24,13 +24,16 @@
 #include "ui.h"
 
 uint16_t logic_main_cycle_counter;
+uint16_t last_logic_cycles_per_50ms_event;
 
 uint8_t logic_init(void) {
     logic_main_cycle_counter = 0;
+    last_logic_cycles_per_50ms_event = 0;
     return 0;
 }
 
 void logic_loop (void) {
+    static uint16_t last_logic_cycle_value = 0; // stores the logic cycle count at each 50 ms event and is used to calc the delta
     deviface_putline("FogDrive  Copyright (C) 2016, the FogDrive Project");
     deviface_putline("This program is free software and comes with ABSOLUTELY NO WARRANTY.");
     deviface_putline("It is licensed under the GPLv3 (see <http://www.gnu.org/licenses/#GPL>).");
@@ -56,7 +59,11 @@ void logic_loop (void) {
                 hardware_fire_off();
             }
             if (e->bytes.a == UI__50MS_PULSE) {
-                // pass
+                if (last_logic_cycle_value < logic_main_cycle_counter) {
+                    // no overflow
+                    last_logic_cycles_per_50ms_event = logic_main_cycle_counter - last_logic_cycle_value;
+                }
+                last_logic_cycle_value = logic_main_cycle_counter;
             }
         }
         //process HW event
@@ -91,16 +98,14 @@ void logic_loop (void) {
             if (strcmp(in_string, "bvm") == 0) {
                 do_battery_measurement();
             }
-//            if (strcmp(in_string, "cyc ui") == 0) {
-//                uint16_t o = ui_timer_cycle_covered_main_cycles;
-//                deviface_putstring("Main cycles per UI timer ISR: ");
-//                deviface_put_uint16(o);
-//                deviface_putlineend();
-//            }
-            if (strcmp(in_string, "cyc main") == 0) {
-                uint16_t o = logic_main_cycle_counter;
+            if (strcmp(in_string, "cyc 50ms") == 0) {
+                deviface_putstring("Main cycles per 50ms event: ");
+                deviface_put_uint16(last_logic_cycles_per_50ms_event);
+                deviface_putlineend();
+            }
+            if (strcmp(in_string, "cyc count") == 0) {
                 deviface_putstring("Main cycle counter: ");
-                deviface_put_uint16(o);
+                deviface_put_uint16(logic_main_cycle_counter);
                 deviface_putlineend();
             }
 //            if (in_string[0]=='l' && in_string[1]=='0' && in_string[2]==' ') {
