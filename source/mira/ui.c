@@ -145,13 +145,9 @@ void ui_input_step(void) {
     QueueElement* low_level_event_e = queue_get_read_element(&low_level_event_queue);
     if (low_level_event_e != 0) {
         if (low_level_event_e->bytes.a == LLE_SWITCH_PRESSED) {
-            QueueElement* e = queue_get_write_element(&ui_event_queue);
-            e->bytes.a = UI__FIRE_BUTTON_PRESSED;
             button_pressed(&button);
         }
         else if (low_level_event_e->bytes.a == LLE_SWITCH_RELEASED) {
-            QueueElement* e = queue_get_write_element(&ui_event_queue);
-            e->bytes.a = UI__FIRE_BUTTON_RELEASED;
             button_released(&button);
         }
         else if (low_level_event_e->bytes.a == LLE_50MS_PULSE) {
@@ -162,11 +158,17 @@ void ui_input_step(void) {
     }
     QueueElement* button_event = queue_get_read_element(&(button.button_event_queue));
     if (button_event != 0) {
-        deviface_putstring("Button: ");
-        deviface_put_uint8(button_event->bytes.a);
-        deviface_putstring(" - ");
-        deviface_put_uint8(button_event->bytes.b);
-        deviface_putlineend();
+        if (button_event->bytes.a == BUTTON_EVENT_PRESSED) {
+            QueueElement* e = queue_get_write_element(&ui_event_queue);
+            e->bytes.a = UI__FIRE_BUTTON_PRESSED;
+        }
+        if (button_event->bytes.a == BUTTON_EVENT_RELEASED) {
+            QueueElement* e = queue_get_write_element(&ui_event_queue);
+            e->bytes.a = UI__FIRE_BUTTON_RELEASED;
+        }
+        if (button_event->bytes.a == BUTTON_EVENT_CLICK) {
+            // nothing to do for a click sequence currently...
+        }
     }
 }
 
