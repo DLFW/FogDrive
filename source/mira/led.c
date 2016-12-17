@@ -32,5 +32,5 @@ void led_set_brightness(LED* led, uint8_t brightness) {
     if (brightness > 99) {
         brightness = 99;
     }
-    *(led->_compare_register_address) = pgm_read_byte(& led_pwmtable[brightness]);
+    *(led->_compare_register_address) = pgm_read_byte(& led_pwmtable[99 - brightness]);
 }
