@@ -84,6 +84,8 @@ uint8_t ui_init(void) {
     // init button logic
     button_init(&button);
 
+
+    _led_dim_linear(&led,99,50);
     return 0;
 }
 
@@ -154,6 +156,7 @@ void ui_input_step(void) {
             QueueElement* e = queue_get_write_element(&ui_event_queue);
             e->bytes.a = UI__50MS_PULSE;
             button_step(&button);
+            led_step(&led);
         }
     }
     QueueElement* button_event = queue_get_read_element(&(button.button_event_queue));

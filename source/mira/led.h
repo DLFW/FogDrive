@@ -42,7 +42,15 @@ static const uint8_t led_pwmtable[100] PROGMEM =
 
 typedef struct {
     uint8_t* _compare_register_address;
+    uint8_t _state;
+    uint8_t _step_count;
+    uint8_t _ramp_duration;
+    uint8_t _start_brightness;
+    uint8_t _current_brightness;
+    uint8_t _target_brightness;
 } LED;
+
+void _led_dim_linear(LED* led, uint8_t brightness, uint8_t ramp_duration);
 
 void led_init_led(LED* led, uint8_t* compare_register_address);
 

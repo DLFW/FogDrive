@@ -38,13 +38,6 @@ void logic_loop (void) {
     deviface_putline("This program is free software and comes with ABSOLUTELY NO WARRANTY.");
     deviface_putline("It is licensed under the GPLv3 (see <http://www.gnu.org/licenses/#GPL>).");
     deviface_putline("\r\nHi! This is the Mira 0 FogDrive.\r\n");
-    ui_fire_is_on();
-    _delay_ms(200);
-    ui_fire_is_off();
-    _delay_ms(200);
-    ui_fire_is_on();
-    _delay_ms(200);
-    ui_fire_is_off();
     while(1) {
         ui_input_step();
         hardware_step();
