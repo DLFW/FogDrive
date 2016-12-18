@@ -36,7 +36,7 @@
 // Bit mask for all used out pins
 #define OUTPIN_ALL_MASK         (1<<HWMAP_UI_OUTPIN_0_IX)
 
-// Low Level Event codes
+// Low Level Event codes (for the low_level_event_queue)
 #define LLE_SWITCH_PRESSED 1    // a switch was pressed, switch index in 2nd queue element
 #define LLE_SWITCH_RELEASED 2   // a switch was released, switch index in 2nd queue element
 #define LLE_50MS_PULSE 3        // 50 ms pulse, this event is put in the queue each 50 ms
@@ -48,7 +48,7 @@ QueueElement ui_event_queue_elements[5];
 /**
  * Queue that transports low level control events to the ui state machines.
  * It's used locally in this module only.
- * It's elements carry a "Low Level Event" (LLE_*) in byte a. In case the event refers to a switch,
+ * Its elements carry a "Low Level Event" (LLE_*) in byte a. In case the event refers to a switch,
  * the switch index is in byte b.
  */
 Queue low_level_event_queue;
