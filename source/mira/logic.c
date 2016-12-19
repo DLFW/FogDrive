@@ -101,16 +101,9 @@ void logic_loop (void) {
                 deviface_put_uint16(logic_main_cycle_counter);
                 deviface_putlineend();
             }
-//            if (in_string[0]=='l' && in_string[1]=='0' && in_string[2]==' ') {
-//                char value[7] = "";
-//                strcpy(value, in_string + 3 );
-////                deviface_putstring(value);
-////                deviface_putlineend();
-//                uint8_t v = (uint8_t) atoi(value);
-//                set_led(v);
-////                deviface_put_uint8(v);
-////                deviface_putlineend();
-//            }
+            if (strcmp(in_string, 'ui leds')) {
+                ui_print_led_info();
+            }
         }
         logic_main_cycle_counter++;
     }

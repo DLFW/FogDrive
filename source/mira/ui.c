@@ -61,7 +61,13 @@ LED led;
 
 Button button;
 
+uint8_t local_bools;
+#define LB_PRINT_LED_INFO   1
+
 uint8_t ui_init(void) {
+
+    local_bools = 0;
+
     // init queues
     queue_initialize(&ui_event_queue, 5, ui_event_queue_elements);
     queue_initialize(&low_level_event_queue, 5, low_level_event_queue_array);
@@ -83,7 +89,6 @@ uint8_t ui_init(void) {
 
     // init button logic
     button_init(&button);
-
 
     _led_dim_linear(&led,99,50);
     return 0;
@@ -144,6 +149,8 @@ ISR( HWMAP_UI_TIMER_ISR ) {
 }
 
 void ui_input_step(void) {
+
+    // Check for events from the timer ISR and react
     QueueElement* low_level_event_e = queue_get_read_element(&low_level_event_queue);
     if (low_level_event_e != 0) {
         if (low_level_event_e->bytes.a == LLE_SWITCH_PRESSED) {
@@ -159,6 +166,8 @@ void ui_input_step(void) {
             led_step(&led);
         }
     }
+
+    // Check for events from the button and react
     QueueElement* button_event = queue_get_read_element(&(button.button_event_queue));
     if (button_event != 0) {
         if (button_event->bytes.a == BUTTON_EVENT_PRESSED) {
@@ -173,6 +182,16 @@ void ui_input_step(void) {
             // nothing to do for a click sequence currently...
         }
     }
+
+    // Check for pending tasks from the logic
+    if (local_bools & LB_PRINT_LED_INFO) {
+        local_bools &= ~LB_PRINT_LED_INFO;
+        deviface_putstring("LED 1# b: ");
+        deviface_put_uint8(led._current_brightness);
+        deviface_putstring(", ocr: ");
+        deviface_put_uint8(MCU_UI_PWM_A_CR);
+        deviface_putlineend();
+    }
 }
 
 void ui_fire_is_on(void) {
@@ -181,4 +200,8 @@ void ui_fire_is_on(void) {
 
 void ui_fire_is_off(void) {
     led_set_brightness(&led, 0);
+}
+
+void ui_print_led_info(void) {
+    local_bools |= LB_PRINT_LED_INFO;
 }
