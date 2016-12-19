@@ -90,7 +90,14 @@ uint8_t ui_init(void) {
     // init button logic
     button_init(&button);
 
-    _led_dim_linear(&led,99,50);
+    led_program_reset(&led);
+    led_program_add_brightness(&led, 20);
+    led_program_add_hold(&led, 10);
+    led_program_add_brightness(&led, 99);
+    led_program_add_hold(&led, 10);
+    led_program_repeat(&led, 0);
+    led_start_program(&led);
+
     return 0;
 }
 
@@ -148,6 +155,21 @@ ISR( HWMAP_UI_TIMER_ISR ) {
     }
 }
 
+void _print_led_commands(LED* led) {
+    uint8_t n = 0;
+    for (n = 0; n < _LED_MAX_COMMAND_COUNT; n++) {
+        deviface_putstring("  ");
+        deviface_put_uint8(led->_commands[n].cmd);
+        deviface_putstring(" ");
+        deviface_put_uint8(led->_commands[n].generic.a);
+        deviface_putstring(" ");
+        deviface_put_uint8(led->_commands[n].generic.b);
+        deviface_putstring(" ");
+        deviface_put_uint8(led->_commands[n].generic.c);
+        deviface_putlineend();
+    }
+}
+
 void ui_input_step(void) {
 
     // Check for events from the timer ISR and react
@@ -190,7 +212,12 @@ void ui_input_step(void) {
         deviface_put_uint8(led._current_brightness);
         deviface_putstring(", ocr: ");
         deviface_put_uint8(MCU_UI_PWM_A_CR);
+        deviface_putstring(", ccnt: ");
+        deviface_put_uint8(led._command_count);
+        deviface_putstring(", cix: ");
+        deviface_put_uint8(led._current_command_ix);
         deviface_putlineend();
+        _print_led_commands(&led);
     }
 }
 

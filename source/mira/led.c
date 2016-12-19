@@ -20,15 +20,80 @@
 #import "deviface.h"
 #include MCUHEADER
 
+static const uint8_t led_pwmtable[100] PROGMEM =        // created by "valuearray.py -f logarithmic -a 5 -b 255 -n 100"
+{
+    5,   18,   31,   43,   55,   66,   76,   86,
+   95,  103,  112,  119,  127,  134,  140,  146,
+  152,  158,  163,  168,  173,  177,  182,  186,
+  189,  193,  196,  200,  203,  205,  208,  211,
+  213,  215,  218,  220,  222,  224,  225,  227,
+  228,  230,  231,  233,  234,  235,  236,  237,
+  238,  239,  240,  241,  242,  243,  243,  244,
+  245,  245,  246,  246,  247,  247,  248,  248,
+  249,  249,  249,  250,  250,  250,  251,  251,
+  251,  252,  252,  252,  252,  252,  253,  253,
+  253,  253,  253,  253,  254,  254,  254,  254,
+  254,  254,  254,  254,  254,  255,  255,  255,
+  255,  255,  255,  255
+};
+
+// LED State Machine States
 #define LSMS_HOLD        0      // maunal set, no lightning function running
 #define LSMS_LINEAR_DIM  1      // led is swithing on
 
 
+// Commands for a LED, "instant commands" (commands that do not need a temporal duration) must have the lowest values.
+// The highest value for an instant command must be specified as HIGHEST_INSTAND_COMMAND_VALUE.
+#define COMMAND_SET_BRIGTHNESS  0
+#define COMMAND_REPEAT          1
+#define COMMAND_HOLD            2
+#define COMMAND_DIM_LINEAR      3
+#define HIGHEST_INSTAND_COMMAND_VALUE 1
+
+
 void led_init_led(LED* led, uint8_t *compare_register_address) {
     led->_compare_register_address = compare_register_address;
-    led->_state = LSMS_HOLD;
-    led->_step_count = 0;
     led_set_brightness(led, 0);
+    led_program_reset(led);
+}
+
+void led_program_reset(LED* led) {
+    led->_current_command_ix = 255;
+    led->_command_count = 0;
+    led->_step_count = 0;
+}
+
+LEDCommand* _get_command_to_add(LED* led) {
+    if (led->_command_count < _LED_MAX_COMMAND_COUNT) {
+        ++(led->_command_count);
+    }
+    return led->_commands + led->_command_count - 1;
+}
+
+void led_program_add_brightness(LED* led, uint8_t brightness) {
+    LEDCommand* command = _get_command_to_add(led);
+    command->cmd = COMMAND_SET_BRIGTHNESS;
+    command->brightness.value = brightness;
+}
+
+void led_program_add_hold(LED* led, uint8_t duration) {
+    LEDCommand* command = _get_command_to_add(led);
+    command->cmd = COMMAND_HOLD;
+    command->hold.duration = duration;
+}
+
+void led_program_repeat(LED* led, uint8_t from_step) {
+    LEDCommand* command = _get_command_to_add(led);
+    command->cmd = COMMAND_REPEAT;
+    command->repeat.index = from_step - 1;
+}
+
+void led_program_add_linear_dim(LED* led, uint8_t brightness, uint8_t ramp_duration) {
+    LEDCommand* command = _get_command_to_add(led);
+    command->cmd = COMMAND_DIM_LINEAR;
+    command->dim_linear._ramp_duration = ramp_duration;
+    command->dim_linear._target_brightness = brightness;
+    command->dim_linear._start_brightness = led->_current_brightness;
 }
 
 void _led_set_brightness(LED* led, uint8_t brightness) {
@@ -39,54 +104,70 @@ void _led_set_brightness(LED* led, uint8_t brightness) {
     led->_current_brightness = brightness;
 }
 
-void _led_start_command(LED* led) {
-    led->_state = LSMS_HOLD;
+void _next_command(LED* led) {
+    led->_step_count = 0;
+    do {
+        ++(led->_current_command_ix);
+        if (led->_current_command_ix == led->_command_count) {
+            // no command left, LED program finished
+            led_program_reset(led);
+            return;
+        } else {
+            // check for the next command
+            if (led->_commands[led->_current_command_ix].cmd > HIGHEST_INSTAND_COMMAND_VALUE) {
+                // not an "instant" command -> will be handled in the led_step function
+                return;
+            }
+            // "instant" commands (handle commands that have no temporal duration here, not in the led_step function)
+            switch (led->_commands[led->_current_command_ix].cmd) {
+                case COMMAND_SET_BRIGTHNESS: {
+                    _led_set_brightness(led, led->_commands[led->_current_command_ix].brightness.value);
+                    break;
+                }
+                case COMMAND_REPEAT: {
+                    led->_current_command_ix = led->_commands[led->_current_command_ix].repeat.index;
+                    break;
+                }
+            }
+        }
+    } while (1);
+}
+
+void led_start_program(LED* led) {
+    _next_command(led);
 }
 
 void led_step(LED* led) {
-    switch (led->_state) {
-        case LSMS_HOLD: {
+    LEDCommand* command = &(led->_commands[led->_current_command_ix].cmd);
+    ++(led->_step_count);
+    switch (command->cmd) {
+        case COMMAND_HOLD: {
+            if (command->hold.duration == led->_step_count) {   // if we hold "long enough", go to the next command
+                _next_command(led);
+            };                                                  // otherwise, do nothing
             break;
         }
         case LSMS_LINEAR_DIM: {
-            led->_step_count++;
-            if (led->_ramp_duration == 0 || led->_step_count == led->_ramp_duration) {
-                _led_set_brightness(led,led->_target_brightness);
-                _led_start_command(led);
+            if (command->dim_linear._ramp_duration == 0 || led->_step_count == command->dim_linear._ramp_duration) {
+                _led_set_brightness(led, command->dim_linear._target_brightness);   // we reached the final step, set the final brightness...
+                _next_command(led);                                                 // ... and go to the next command
             } else {
-//              deviface_put_uint8(led->_target_brightness);
-//              deviface_putstring("-");
-//              deviface_put_uint8(led->_start_brightness);
-//              deviface_putstring("-");
-//              deviface_put_uint8(led->_step_count);
-//              deviface_putstring("-");
-              uint8_t b = (uint8_t)(((float)(led->_target_brightness - led->_start_brightness) / (float)led->_ramp_duration) + 0.5);
-//              deviface_put_uint8(b);
-              b = b * led->_step_count;
-//              deviface_putstring("-");
-//              deviface_put_uint8(b);
-//              deviface_putlineend();
-              _led_set_brightness(led, b);
+                  int8_t b = (int8_t)(
+                       (
+                          (float)(command->dim_linear._target_brightness - command->dim_linear._start_brightness)
+                           /
+                          (float)command->dim_linear._ramp_duration
+                       ) + 0.5
+                  );
+                  b = b * led->_step_count;
+                  _led_set_brightness(led, b);
             }
             break;
         }
     }
 }
 
-
-
-
-void _led_dim_linear(LED* led, uint8_t brightness, uint8_t ramp_duration) {
-
-    led->_ramp_duration = ramp_duration;
-    led->_target_brightness = brightness;
-    led->_start_brightness = led->_current_brightness;
-    led->_step_count = 0;
-    led->_state = LSMS_LINEAR_DIM;
-}
-
-
 void led_set_brightness(LED* led, uint8_t brightness) {
-    led->_state = LSMS_HOLD;
+    led_program_reset(led);
     _led_set_brightness(led, brightness);
 }
