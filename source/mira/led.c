@@ -37,10 +37,6 @@ static const uint8_t led_pwmtable[100] PROGMEM =        // created by "valuearra
   255,  255,  255,  255
 };
 
-// LED State Machine States
-#define LSMS_HOLD        0      // maunal set, no lightning function running
-#define LSMS_LINEAR_DIM  1      // led is swithing on
-
 
 // Commands for a LED, "instant commands" (commands that do not need a temporal duration) must have the lowest values.
 // The highest value for an instant command must be specified as HIGHEST_INSTAND_COMMAND_VALUE.
@@ -147,7 +143,7 @@ void led_step(LED* led) {
             };                                                  // otherwise, do nothing
             break;
         }
-        case LSMS_LINEAR_DIM: {
+        case COMMAND_DIM_LINEAR: {
             if (command->dim_linear._ramp_duration == 0 || led->_step_count == command->dim_linear._ramp_duration) {
                 _led_set_brightness(led, command->dim_linear._target_brightness);   // we reached the final step, set the final brightness...
                 _next_command(led);                                                 // ... and go to the next command
@@ -160,6 +156,9 @@ void led_step(LED* led) {
                        ) + 0.5
                   );
                   b = b * led->_step_count;
+                  deviface_putstring("ld:");
+                  deviface_put_uint8(b);
+                  deviface_putlineend();
                   _led_set_brightness(led, b);
             }
             break;

@@ -91,11 +91,10 @@ uint8_t ui_init(void) {
     button_init(&button);
 
     led_program_reset(&led);
-    led_program_add_brightness(&led, 20);
-    led_program_add_hold(&led, 10);
-    led_program_add_brightness(&led, 99);
-    led_program_add_hold(&led, 10);
-    led_program_repeat(&led, 0);
+    led_program_add_hold(&led,4);
+    led_program_add_linear_dim(&led, 99, 5);
+    led_program_add_brightness(&led, 0);
+    led_program_add_hold(&led,1);
     led_start_program(&led);
 
     return 0;
@@ -222,11 +221,17 @@ void ui_input_step(void) {
 }
 
 void ui_fire_is_on(void) {
-    led_set_brightness(&led, 99);
+    led_program_reset(&led);
+    led_program_add_linear_dim(&led, 99, 30);
+    led_start_program(&led);
+    //led_set_brightness(&led, 99);
 }
 
 void ui_fire_is_off(void) {
-    led_set_brightness(&led, 0);
+    led_program_reset(&led);
+    led_program_add_linear_dim(&led, 0, 30);
+    led_start_program(&led);
+    //led_set_brightness(&led, 0);
 }
 
 void ui_print_led_info(void) {
