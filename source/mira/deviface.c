@@ -64,6 +64,12 @@ void deviface_put_uint8(uint8_t v) {
     deviface_putstring(value_s);
 }
 
+void deviface_put_int8(int8_t v) {
+    char value_s[4];
+    itoa(v,value_s,10);
+    deviface_putstring(value_s);
+}
+
 void deviface_put_uint16(uint16_t v) {
     char value_s[6];
     utoa(v,value_s,10);

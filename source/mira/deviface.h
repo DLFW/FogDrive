@@ -33,6 +33,8 @@ void deviface_put_uint16(uint16_t v);
 
 void deviface_put_uint8(uint8_t v);
 
+void deviface_put_int8(int8_t v);
+
 void deviface_putlineend(void);
 
 void deviface_putstring(char* s);

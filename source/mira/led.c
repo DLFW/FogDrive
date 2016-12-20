@@ -150,15 +150,11 @@ void led_step(LED* led) {
             } else {
                   int8_t b = (int8_t)(
                        (
-                          (float)(command->dim_linear._target_brightness - command->dim_linear._start_brightness)
+                          (float)(command->dim_linear._target_brightness - command->dim_linear._start_brightness) * led->_step_count
                            /
                           (float)command->dim_linear._ramp_duration
-                       ) + 0.5
+                       ) + 0.5 + command->dim_linear._start_brightness
                   );
-                  b = b * led->_step_count;
-                  deviface_putstring("ld:");
-                  deviface_put_uint8(b);
-                  deviface_putlineend();
                   _led_set_brightness(led, b);
             }
             break;

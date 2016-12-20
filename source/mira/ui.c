@@ -222,14 +222,14 @@ void ui_input_step(void) {
 
 void ui_fire_is_on(void) {
     led_program_reset(&led);
-    led_program_add_linear_dim(&led, 99, 30);
+    led_program_add_linear_dim(&led, 99, 10);
     led_start_program(&led);
     //led_set_brightness(&led, 99);
 }
 
 void ui_fire_is_off(void) {
     led_program_reset(&led);
-    led_program_add_linear_dim(&led, 0, 30);
+    led_program_add_linear_dim(&led, 0, 10);
     led_start_program(&led);
     //led_set_brightness(&led, 0);
 }
