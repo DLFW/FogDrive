@@ -101,7 +101,7 @@ void logic_loop (void) {
                 deviface_put_uint16(logic_main_cycle_counter);
                 deviface_putlineend();
             }
-            if (strcmp(in_string, 'ui leds')) {
+            if (strcmp(in_string, 'ui leds') == 0) {
                 ui_print_led_info();
             }
         }
