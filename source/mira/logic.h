@@ -22,16 +22,17 @@
 #include <avr/io.h>
 #include "queue.h"
 
-uint8_t logic_init(void);
+#define BATTERY_VOLTAGE_LOW_VALUE 35
+#define BATTERY_VOLTAGE_VERY_LOW_VALUE 32
+#define BATTERY_VOLTAGE_STOP_VALUE 30
 
+extern uint8_t battery_voltage_unstressed;
+extern uint8_t battery_voltage_under_load;
+
+
+uint8_t logic_init(void);
 void logic_loop (void);
 
-void logic_firebutton_pressed(void);
-
-void set_led(uint8_t value);
-
-
-extern uint16_t logic_main_cycle_counter;
 
 
 #endif // LOGIC_H

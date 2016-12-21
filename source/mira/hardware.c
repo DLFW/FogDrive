@@ -139,8 +139,6 @@ void sm_bvm(void) {
                    )
                 {
                     sum += battery_voltage_values[battery_voltage_values_ix];
-                    deviface_put_uint16(sum);
-                    deviface_putlineend();
                 }
             }
             // divide the sum by the total number of measurements minus two (the lowest and highest value that has been thrown)

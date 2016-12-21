@@ -61,12 +61,14 @@ LED led;
 
 Button button;
 
-uint8_t local_bools;
-#define LB_PRINT_LED_INFO   1
+uint8_t ui_local_bools;
+#define LB_PRINT_LED_INFO       1
+#define LB_FIRE_IS_ON           2
+#define LB_LOW_VOLTAGE_DETECTED 4
 
 uint8_t ui_init(void) {
 
-    local_bools = 0;
+    ui_local_bools = 0;
 
     // init queues
     queue_initialize(&ui_event_queue, 5, ui_event_queue_elements);
@@ -205,8 +207,8 @@ void ui_input_step(void) {
     }
 
     // Check for pending tasks from the logic
-    if (local_bools & LB_PRINT_LED_INFO) {
-        local_bools &= ~LB_PRINT_LED_INFO;
+    if (ui_local_bools & LB_PRINT_LED_INFO) {
+        ui_local_bools &= ~LB_PRINT_LED_INFO;
         deviface_putstring("LED 1# b: ");
         deviface_put_uint8(led._current_brightness);
         deviface_putstring(", ocr: ");
@@ -218,22 +220,32 @@ void ui_input_step(void) {
         deviface_putlineend();
         _print_led_commands(&led);
     }
+
+    // Battery voltage indicator
+    if (ui_local_bools & LB_FIRE_IS_ON) {
+        if (battery_voltage_under_load < BATTERY_VOLTAGE_LOW_VALUE) {
+            if (! (ui_local_bools & LB_LOW_VOLTAGE_DETECTED)) {
+                ui_local_bools |= LB_LOW_VOLTAGE_DETECTED;
+                led_program_reset(&led);
+                led_program_add_linear_dim(&led, 99, 10);
+                led_start_program(&led);
+            }
+        }
+    }
 }
 
 void ui_fire_is_on(void) {
-    led_program_reset(&led);
-    led_program_add_linear_dim(&led, 99, 10);
-    led_start_program(&led);
-    //led_set_brightness(&led, 99);
+    ui_local_bools |= LB_FIRE_IS_ON;
 }
 
 void ui_fire_is_off(void) {
+    ui_local_bools &= ~LB_FIRE_IS_ON;
     led_program_reset(&led);
-    led_program_add_linear_dim(&led, 0, 10);
+    led_program_add_linear_dim(&led, 0, 5);
     led_start_program(&led);
-    //led_set_brightness(&led, 0);
+    ui_local_bools &= ~LB_LOW_VOLTAGE_DETECTED;
 }
 
 void ui_print_led_info(void) {
-    local_bools |= LB_PRINT_LED_INFO;
+    ui_local_bools |= LB_PRINT_LED_INFO;
 }
