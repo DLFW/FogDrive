@@ -23,18 +23,18 @@
 #include "hardware.h"
 #include "ui.h"
 
-uint16_t logic_main_cycle_counter;
-uint16_t last_logic_cycles_per_50ms_event;
-uint16_t min_logic_cycles_per_50ms_event = 0xFFFF;
+static uint16_t logic_main_cycle_counter;
+static uint16_t last_logic_cycles_per_50ms_event;
+static uint16_t min_logic_cycles_per_50ms_event = 0xFFFF;
 
 uint8_t battery_voltage_unstressed = 0;
 uint8_t battery_voltage_under_load = 0;
 
-uint8_t lg_local_bools = 0;
+static uint8_t local_bools = 0;
 #define LB_HW_IS_FIRING   1
 #define LB_PRINT_BVMS     2
 
-uint8_t pulse_counter_for_battery_voltage_measurement = 0;
+static uint8_t pulse_counter_for_battery_voltage_measurement = 0;
 
 uint8_t logic_init(void) {
     logic_main_cycle_counter = 0;
@@ -73,7 +73,7 @@ void logic_loop (void) {
                 last_logic_cycle_value = logic_main_cycle_counter;
 
                 // 2) trigger cyclical battery voltage measurement
-                if (lg_local_bools & LB_HW_IS_FIRING) {
+                if (local_bools & LB_HW_IS_FIRING) {
                     if (pulse_counter_for_battery_voltage_measurement == 4) {   // every 200ms (4*50ms) when the mod is firing
                         do_battery_measurement();
                         pulse_counter_for_battery_voltage_measurement = 0;
@@ -92,22 +92,22 @@ void logic_loop (void) {
         e = queue_get_read_element(&hw_event_queue);
         if (e != 0) {
             if (e->bytes.a == HW__FIRE_ON) {
-                lg_local_bools |= LB_HW_IS_FIRING;
+                local_bools |= LB_HW_IS_FIRING;
                 pulse_counter_for_battery_voltage_measurement = 0;
                 ui_fire_is_on();
             }
             else if (e->bytes.a == HW__FIRE_OFF) {
-                lg_local_bools &= ~LB_HW_IS_FIRING;
+                local_bools &= ~LB_HW_IS_FIRING;
                 pulse_counter_for_battery_voltage_measurement = 0;
                 ui_fire_is_off();
             }
             else if (e->bytes.a == HW__BATTERY_MEASURE) {
-                if (lg_local_bools & LB_HW_IS_FIRING) {
+                if (local_bools & LB_HW_IS_FIRING) {
                     battery_voltage_under_load = e->bytes.b / 5;   // hw module gives the voltage in 20mV steps...
                 } else {
                     battery_voltage_unstressed = e->bytes.b / 5;   // ...but in the logic and the UI module, we process it in 0.1V steps
                 }
-                if (lg_local_bools & LB_PRINT_BVMS) {
+                if (local_bools & LB_PRINT_BVMS) {
                     deviface_putstring("BVM: ");
                     deviface_put_uint8(e->bytes.b);
                     deviface_putlineend();
@@ -159,16 +159,16 @@ void logic_loop (void) {
             }
             if (strcmp(in_string, "bools lg") == 0) {
                 char value_s[9];
-                utoa(lg_local_bools,value_s,2);
+                utoa(local_bools,value_s,2);
                 deviface_putstring("Logic bools: ");
                 deviface_putstring(value_s);
                 deviface_putstring("\n\r");
             }
             if (strcmp(in_string, "p bvm on") == 0) {
-                lg_local_bools |= LB_PRINT_BVMS;
+                local_bools |= LB_PRINT_BVMS;
             }
             if (strcmp(in_string, "p bvm off") == 0) {
-                lg_local_bools &= ~LB_PRINT_BVMS;
+                local_bools &= ~LB_PRINT_BVMS;
             }
         }
         logic_main_cycle_counter++;

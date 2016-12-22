@@ -51,17 +51,17 @@ QueueElement ui_event_queue_elements[5];
  * Its elements carry a "Low Level Event" (LLE_*) in byte a. In case the event refers to a switch,
  * the switch index is in byte b.
  */
-Queue low_level_event_queue;
+static Queue low_level_event_queue;
 /**
  * Queue array for #ui_input_queue.
  */
-QueueElement low_level_event_queue_array[5];
+static QueueElement low_level_event_queue_array[5];
 
-LED led;
+static LED led;
 
-Button button;
+static Button button;
 
-uint8_t ui_local_bools;
+static uint8_t ui_local_bools;
 #define LB_PRINT_LED_INFO       1
 #define LB_FIRE_IS_ON           2
 #define LB_LOW_VOLTAGE_DETECTED 4
@@ -229,6 +229,9 @@ void ui_input_step(void) {
                 led_program_reset(&led);
                 led_program_add_linear_dim(&led, 99, 10);
                 led_start_program(&led);
+                deviface_putstring("BV low: ");
+                deviface_put_int8(battery_voltage_under_load);
+                deviface_putlineend();
             }
         }
     }
