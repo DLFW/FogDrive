@@ -1,0 +1,191 @@
+EESchema Schematic File Version 2
+LIBS:power
+LIBS:device
+LIBS:transistors
+LIBS:conn
+LIBS:linear
+LIBS:regul
+LIBS:74xx
+LIBS:cmos4000
+LIBS:adc-dac
+LIBS:memory
+LIBS:xilinx
+LIBS:microcontrollers
+LIBS:dsp
+LIBS:microchip
+LIBS:analog_switches
+LIBS:motorola
+LIBS:texas
+LIBS:intel
+LIBS:audio
+LIBS:interface
+LIBS:digital-audio
+LIBS:philips
+LIBS:display
+LIBS:cypress
+LIBS:siliconi
+LIBS:opto
+LIBS:atmel
+LIBS:contrib
+LIBS:valves
+EELAYER 25 0
+EELAYER END
+$Descr A4 11693 8268
+encoding utf-8
+Sheet 1 2
+Title ""
+Date ""
+Rev ""
+Comp ""
+Comment1 ""
+Comment2 ""
+Comment3 ""
+Comment4 ""
+$EndDescr
+$Comp
+L D D?
+U 1 1 583CCC55
+P -5000 2550
+F 0 "D?" H -5000 2650 50  0000 C CNN
+F 1 "D" H -5000 2450 50  0000 C CNN
+F 2 "" H -5000 2550 50  0000 C CNN
+F 3 "" H -5000 2550 50  0000 C CNN
+	1    -5000 2550
+	1    0    0    -1  
+$EndComp
+$Comp
+L D D?
+U 1 1 583CCC56
+P -5000 2050
+F 0 "D?" H -5000 2150 50  0000 C CNN
+F 1 "D" H -5000 1950 50  0000 C CNN
+F 2 "" H -5000 2050 50  0000 C CNN
+F 3 "" H -5000 2050 50  0000 C CNN
+	1    -5000 2050
+	-1   0    0    1   
+$EndComp
+$Comp
+L LM7805CT U?
+U 1 1 583CCC57
+P -4050 2100
+F 0 "U?" H -4250 2300 50  0000 C CNN
+F 1 "LM7805CT" H -4050 2300 50  0000 L CNN
+F 2 "TO-220" H -4050 2200 50  0000 C CIN
+F 3 "" H -4050 2100 50  0000 C CNN
+	1    -4050 2100
+	1    0    0    -1  
+$EndComp
+$Comp
+L ATMEGA328-P µC
+U 1 1 583CCC58
+P 4100 3900
+F 0 "µC" H 3350 5150 50  0000 L BNN
+F 1 "ATMEGA328-P" H 4500 2500 50  0000 L BNN
+F 2 "" H 4100 3900 50  0000 C CIN
+F 3 "" H 4100 3900 50  0000 C CNN
+	1    4100 3900
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	-4850 2050 -4450 2050
+Wire Wire Line
+	-3650 2050 -2850 2050
+$Comp
+L GND #PWR?
+U 1 1 583CCC5A
+P -4050 2550
+F 0 "#PWR?" H -4050 2300 50  0001 C CNN
+F 1 "GND" H -4050 2400 50  0000 C CNN
+F 2 "" H -4050 2550 50  0000 C CNN
+F 3 "" H -4050 2550 50  0000 C CNN
+	1    -4050 2550
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	-5150 2550 -5350 2550
+$Comp
+L +9V #PWR?
+U 1 1 583CCC5B
+P -5350 2050
+F 0 "#PWR?" H -5350 1900 50  0001 C CNN
+F 1 "+9V" H -5350 2190 50  0000 C CNN
+F 2 "" H -5350 2050 50  0000 C CNN
+F 3 "" H -5350 2050 50  0000 C CNN
+	1    -5350 2050
+	0    -1   -1   0   
+$EndComp
+Wire Wire Line
+	-5150 2050 -5350 2050
+Wire Wire Line
+	-4050 2350 -4050 2550
+Connection ~ -4050 2550
+$Comp
+L GNDPWR #PWR?
+U 1 1 583CCC5E
+P -5350 2550
+F 0 "#PWR?" H -5350 2350 50  0001 C CNN
+F 1 "GNDPWR" H -5350 2420 50  0000 C CNN
+F 2 "" H -5350 2500 50  0000 C CNN
+F 3 "" H -5350 2500 50  0000 C CNN
+	1    -5350 2550
+	0    1    1    0   
+$EndComp
+Wire Wire Line
+	-4050 2550 -4850 2550
+$Sheet
+S 3500 1400 1300 800 
+U 58603D0F
+F0 "Mira" 60
+F1 "mira.sch" 60
+F2 "VCC" I L 3500 2000 60 
+F3 "AREF" I L 3500 1800 60 
+F4 "GND" I L 3500 1600 60 
+F5 "FIRE" I R 4800 2000 60 
+F6 "LED" I R 4800 1600 60 
+F7 "BUTTON" I R 4800 1800 60 
+$EndSheet
+Wire Wire Line
+	3500 2000 2950 2000
+Wire Wire Line
+	2950 2000 2950 3100
+Wire Wire Line
+	2950 3100 3200 3100
+Wire Wire Line
+	3200 2800 2950 2800
+Connection ~ 2950 2800
+Wire Wire Line
+	3500 1800 2600 1800
+Wire Wire Line
+	2600 1800 2600 3400
+Wire Wire Line
+	2600 3400 3200 3400
+Wire Wire Line
+	3450 1600 2200 1600
+Wire Wire Line
+	2200 1600 2200 5100
+Wire Wire Line
+	2200 5100 3200 5100
+Wire Wire Line
+	3200 5000 2950 5000
+Wire Wire Line
+	2950 5000 2950 5100
+Connection ~ 2950 5100
+Wire Wire Line
+	4800 2000 5300 2000
+Wire Wire Line
+	5300 2000 5300 2800
+Wire Wire Line
+	5300 2800 5100 2800
+Wire Wire Line
+	4800 1600 6000 1600
+Wire Wire Line
+	6000 1600 6000 5000
+Wire Wire Line
+	6000 5000 5100 5000
+Wire Wire Line
+	5100 3100 5600 3100
+Wire Wire Line
+	5600 3100 5600 1800
+Wire Wire Line
+	5600 1800 4800 1800
+$EndSCHEMATC
