@@ -74,7 +74,7 @@ void logic_loop (void) {
 
                 // 2) trigger cyclical battery voltage measurement
                 if (local_bools & LB_HW_IS_FIRING) {
-                    if (pulse_counter_for_battery_voltage_measurement == 4) {   // every 200ms (4*50ms) when the mod is firing
+                    if (pulse_counter_for_battery_voltage_measurement > 3) {   // every 200ms (4*50ms) when the mod is firing
                         do_battery_measurement();
                         pulse_counter_for_battery_voltage_measurement = 0;
                     }
@@ -155,13 +155,6 @@ void logic_loop (void) {
             if (strcmp(in_string, "bv") == 0) {
                 deviface_putstring("Battery voltage unstressed: ");
                 deviface_put_uint8(battery_voltage_unstressed);
-                deviface_putstring("\n\r");
-            }
-            if (strcmp(in_string, "bools lg") == 0) {
-                char value_s[9];
-                utoa(local_bools,value_s,2);
-                deviface_putstring("Logic bools: ");
-                deviface_putstring(value_s);
                 deviface_putstring("\n\r");
             }
             if (strcmp(in_string, "p bvm on") == 0) {

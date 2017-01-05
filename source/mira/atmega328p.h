@@ -59,7 +59,7 @@ void mcu_init_ui_double_compare_timer_for_fast_pwm_1ms(void);
 void uart_init_8_plus_1(void);
 
 /**************************************************
- * Hardware
+ * Hardware fire pin
  *************************************************/
 // Data register used to control the fire MOSFET
 #define HWMAP_HW_FIRE_DDR        DDRB
@@ -67,6 +67,13 @@ void uart_init_8_plus_1(void);
 #define HWMAP_HW_FIRE_PORT       PORTB
 // Index of the pin used to control the fire MOSFET
 #define HWMAP_HW_FIRE_BIT_IX     0
+
+/**************************************************
+ * Hardware ADC
+ *************************************************/
+void mcu__enabled_one_adc_with_vcc_reference_and_vgb_input(void);
+#define MCU__START_SINGLE_ADC_CONVERSION ADCSRA |= (1<<ADSC)
+#define MCU__SINGLE_ADC_CONVERSION_IS_DONE ! (ADCSRA & (1<<ADSC))
 
 #endif // ATMEGA328P_H
 

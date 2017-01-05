@@ -47,3 +47,9 @@ void mcu_init_ui_double_compare_timer_for_fast_pwm_1ms(void) {
     TCCR0A = (1<<WGM01) | (1<<WGM00) | (1<<COM0A1) | (1<<COM0A0);   // Fast PWM, single slope, count from 0 to 255 (not only till compare), inverting
     TCCR0B = (1<<CS00);                               // Internal clock, no prescaling
 }
+
+void mcu__enabled_one_adc_with_vcc_reference_and_vgb_input(void) {
+    ADMUX |= (1<<REFS0);                         //voltage reference selction: AV_CC
+    ADMUX |= (1<<MUX3) | (1<<MUX2) | (1<<MUX1);  //input voltage selection: 1.1V (V_BG)
+    ADCSRA |= (1<<ADEN);                         //activate ADC
+}

@@ -52,13 +52,8 @@ uint8_t hardware_init(void) {
     HWMAP_HW_FIRE_PORT &= ~CTRLMAP_FIRE_BIT_MASK;
     // set up the hardware event queue
     queue_initialize(&hw_event_queue, 5, hw_event_queue_elements);
-
-
-
-    ADMUX |= (1<<REFS0);                         //voltage reference selction: AREF, Internal Vref turned off
-    ADMUX |= (1<<MUX3) | (1<<MUX2) | (1<<MUX1);  //input voltage selection: 1.1V (V_BG)
-    ADCSRA |= (1<<ADEN);                         //activate ADC
-
+    // enable the ADC which uses V_CC as reference and the constant voltage V_GB as input
+    mcu__enabled_one_adc_with_vcc_reference_and_vgb_input();
 
     return 0;
 }
@@ -81,7 +76,7 @@ void sm_bvm(void) {
     switch (sm_bvm_status) {
         case SMS_BVM_IDLE: {
             if (make_measurement == 1) {
-                ADCSRA |= (1<<ADSC);// start
+                MCU__START_SINGLE_ADC_CONVERSION;
                 battery_voltage_values_ix = 0;
                 sm_bvm_status = SMS_BVM_MEASURING;
                 make_measurement = 0;
@@ -89,7 +84,7 @@ void sm_bvm(void) {
             break;
         }
         case SMS_BVM_MEASURING: {
-            if (! (ADCSRA & (1<<ADSC))) {
+            if (MCU__SINGLE_ADC_CONVERSION_IS_DONE) {
                 // measurement done
                 uint8_t adc_low = ADCL;     // get the low byte of the measured value
                 uint8_t adc_high = ADCH;    // get the high byte of the measured value
@@ -99,7 +94,7 @@ void sm_bvm(void) {
                 if (++battery_voltage_values_ix == BVM_SMOOTHING) {
                     sm_bvm_status = SMS_BVM_CALCULATING;
                 } else {
-                    ADCSRA |= (1<<ADSC);            // start another measurement, stay in this state...
+                   MCU__START_SINGLE_ADC_CONVERSION;            // start another measurement, stay in this state...
                 }
             }
             break;
@@ -145,7 +140,7 @@ void sm_bvm(void) {
             // and put the final result into the event queue
             QueueElement* e = queue_get_write_element(&hw_event_queue);
             e->bytes.a = HW__BATTERY_MEASURE;
-            e->bytes.b = (uint8_t) (sum / (BVM_SMOOTHING >> 1));
+            e->bytes.b = (uint8_t) (sum / (BVM_SMOOTHING - 2));
             // go back to the idle state to wait for the next measurement instruction
             sm_bvm_status = SMS_BVM_IDLE;
             break;
