@@ -65,6 +65,7 @@ static uint8_t ui_local_bools;
 #define LB_PRINT_LED_INFO       1
 #define LB_FIRE_IS_ON           2
 #define LB_LOW_VOLTAGE_DETECTED 4
+#define LB_VERY_LOW_VOLTAGE_DETECTED 8
 
 uint8_t ui_init(void) {
 
@@ -234,6 +235,21 @@ void ui_input_step(void) {
                 deviface_putlineend();
             }
         }
+        if (battery_voltage_under_load < BATTERY_VOLTAGE_VERY_LOW_VALUE) {
+            if (! (ui_local_bools & LB_VERY_LOW_VOLTAGE_DETECTED)) {
+                ui_local_bools |= LB_VERY_LOW_VOLTAGE_DETECTED;
+                led_program_reset(&led);
+                led_program_add_linear_dim(&led, 99, 3);
+                led_program_add_hold(&led,4);
+                led_program_add_linear_dim(&led, 0, 3);
+                led_program_add_hold(&led,2);
+                led_program_repeat(&led,0);
+                led_start_program(&led);
+                deviface_putstring("BV very low: ");
+                deviface_put_int8(battery_voltage_under_load);
+                deviface_putlineend();
+            }
+        }
     }
 }
 
@@ -247,6 +263,7 @@ void ui_fire_is_off(void) {
     led_program_add_linear_dim(&led, 0, 5);
     led_start_program(&led);
     ui_local_bools &= ~LB_LOW_VOLTAGE_DETECTED;
+    ui_local_bools &= ~LB_VERY_LOW_VOLTAGE_DETECTED;
 }
 
 void ui_print_led_info(void) {
