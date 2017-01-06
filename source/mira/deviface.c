@@ -36,10 +36,12 @@ void deviface_init(void) {
 }
 
 void deviface_putchar( unsigned char data ) {
+#ifdef UART_ENABLED
     // Wait for empty transmit buffer (mcu specific macro)
     MCUMAP_UART_CMD_AWAIT_EMPTY_CHARBUFFER;
     // Put data into buffer (mcu specific macro), sends the data
     CTRLMAP_UART_CHARBUFFER = data;
+#endif
 }
 
 void deviface_putstring (char* s) {
@@ -77,6 +79,7 @@ void deviface_put_uint16(uint16_t v) {
 }
 
 ISR(USART_RX_vect) {
+#ifdef UART_ENABLED
   unsigned char nextChar;
   nextChar = CTRLMAP_UART_CHARBUFFER;
   if( uart_str_complete == 0 ) {
@@ -95,4 +98,5 @@ ISR(USART_RX_vect) {
         deviface_putchar('\n');
     }
   }
+#endif
 }

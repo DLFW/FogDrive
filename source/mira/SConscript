@@ -28,7 +28,7 @@ map_name = env['fogdrive'].build_file_name + '.map'
 elf_name = env['fogdrive'].build_file_name + '.elf'
 hex_name = env['fogdrive'].build_file_name + '.hex'
 
-elf_sources = objs + Glob('../../mcus/*.o')
+elf_sources = objs + Glob('../../mcus/{mcu}.o'.format(mcu=env["fogdrive"].mcu))
 
 elf = env.Elf(elf_name, elf_sources) 
 hex = env.Hex(hex_name, elf_name)

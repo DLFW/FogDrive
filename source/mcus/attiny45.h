@@ -27,40 +27,29 @@
 #define HWMAP_UI_SWITCH_DDR      DDRB
 #define HWMAP_UI_SWITCH_PORT     PORTB
 #define HWMAP_UI_SWITCH_PIN      PINB
-#define HWMAP_UI_SWITCH_0_IX     3
+#define HWMAP_UI_SWITCH_0_IX     2
 
 /**************************************************
  * UI output
  *************************************************/
 #define HWMAP_UI_OUTPIN_DDR     DDRB
 #define HWMAP_UI_OUTPIN_PORT    PORTB
-#define HWMAP_UI_OUTPIN_0_IX    2
+#define HWMAP_UI_OUTPIN_0_IX    1
 
 /**************************************************
- * UI timer for event timing
+ * UI timer
  *************************************************/
-#define HWMAP_UI_TIMER_ISR     TIMER2_OVF_vect
+#define HWMAP_UI_TIMER_ISR     TIMER1_OVF_vect
 #define HWMAP_UI_TIMER_CMD_REINIT_FOR_10ms TCNT1 = (256-(F_CPU / 256 * 10e-3 + 0.5));
+#define MCU_UI_PWM_A_CR OCR0A
 // Function that initializes the UI timers and PWMs
 void ui_timer_init_10ms_overflow(void);
-
-/**************************************************
- * UI timer for LED PWM
- *************************************************/
-#define MCU_UI_PWM_A_CR OCR0B
 void mcu_init_ui_double_compare_timer_for_fast_pwm_1ms(void);
 
 /**************************************************
  * UART
  *************************************************/
-#define UART_ENABLED
-// Baud rate for the UART, should be externalized somehow later on
-#define BAUD 4800UL
-// The UART's char buffer register (delivers in received character inside the ISR and takes a charater to write out)
-#define CTRLMAP_UART_CHARBUFFER     UDR0
-// Command that waits until the charbuffer is empty and can be used to send a single character
-#define MCUMAP_UART_CMD_AWAIT_EMPTY_CHARBUFFER  while ( !( UCSR0A & (1<<UDRE0)) );
-// Function that inititializes the UART with 8 data and one stop bit.
+// No UART for the Tiny
 void uart_init_8_plus_1(void);
 
 /**************************************************
@@ -71,7 +60,7 @@ void uart_init_8_plus_1(void);
 // Corresponding port
 #define HWMAP_HW_FIRE_PORT       PORTB
 // Index of the pin used to control the fire MOSFET
-#define HWMAP_HW_FIRE_BIT_IX     0
+#define HWMAP_HW_FIRE_BIT_IX     3
 
 /**************************************************
  * Hardware ADC
