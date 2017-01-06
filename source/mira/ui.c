@@ -158,6 +158,7 @@ ISR( HWMAP_UI_TIMER_ISR ) {
 }
 
 void _print_led_commands(LED* led) {
+#ifdef UART_ENABLED
     uint8_t n = 0;
     for (n = 0; n < _LED_MAX_COMMAND_COUNT; n++) {
         deviface_putstring("  ");
@@ -170,6 +171,7 @@ void _print_led_commands(LED* led) {
         deviface_put_uint8(led->_commands[n].generic.c);
         deviface_putlineend();
     }
+#endif
 }
 
 void ui_input_step(void) {
@@ -208,6 +210,7 @@ void ui_input_step(void) {
     }
 
     // Check for pending tasks from the logic
+    #ifdef UART_ENABLED
     if (ui_local_bools & LB_PRINT_LED_INFO) {
         ui_local_bools &= ~LB_PRINT_LED_INFO;
         deviface_putstring("LED 1# b: ");
@@ -221,6 +224,7 @@ void ui_input_step(void) {
         deviface_putlineend();
         _print_led_commands(&led);
     }
+    #endif
 
     // Battery voltage indicator
     if (ui_local_bools & LB_FIRE_IS_ON) {
@@ -230,9 +234,6 @@ void ui_input_step(void) {
                 led_program_reset(&led);
                 led_program_add_linear_dim(&led, 99, 10);
                 led_start_program(&led);
-                deviface_putstring("BV low: ");
-                deviface_put_int8(battery_voltage_under_load);
-                deviface_putlineend();
             }
         }
         if (battery_voltage_under_load < BATTERY_VOLTAGE_VERY_LOW_VALUE) {
@@ -245,9 +246,6 @@ void ui_input_step(void) {
                 led_program_add_hold(&led,2);
                 led_program_repeat(&led,0);
                 led_start_program(&led);
-                deviface_putstring("BV very low: ");
-                deviface_put_int8(battery_voltage_under_load);
-                deviface_putlineend();
             }
         }
     }

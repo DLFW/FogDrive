@@ -44,10 +44,12 @@ uint8_t logic_init(void) {
 
 void logic_loop (void) {
     static uint16_t last_logic_cycle_value = 0; // stores the logic cycle count at each 50 ms event and is used to calc the delta
+#ifdef UART_ENABLED
     deviface_putline("FogDrive  Copyright (C) 2016, the FogDrive Project");
     deviface_putline("This program is free software and comes with ABSOLUTELY NO WARRANTY.");
     deviface_putline("It is licensed under the GPLv3 (see <http://www.gnu.org/licenses/#GPL>).");
     deviface_putline("\r\nHi! This is the Mira 0 FogDrive.\r\n");
+#endif
     while(1) {
         ui_input_step();
         hardware_step();
@@ -107,14 +109,16 @@ void logic_loop (void) {
                 } else {
                     battery_voltage_unstressed = e->bytes.b / 5;   // ...but in the logic and the UI module, we process it in 0.1V steps
                 }
+                #ifdef UART_ENABLED
                 if (local_bools & LB_PRINT_BVMS) {
                     deviface_putstring("BVM: ");
                     deviface_put_uint8(e->bytes.b);
                     deviface_putlineend();
                 }
+                #endif
             }
         }
-
+#ifdef UART_ENABLED
         //process commands from the devolper interface (deviface) (UART)
         if (uart_str_complete) {
             char in_string[UART_MAXSTRLEN + 1];
@@ -164,6 +168,7 @@ void logic_loop (void) {
                 local_bools &= ~LB_PRINT_BVMS;
             }
         }
+#endif
         logic_main_cycle_counter++;
     }
     return 0;
