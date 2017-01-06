@@ -40,14 +40,14 @@
  * UI timer for event timing
  *************************************************/
 #define HWMAP_UI_TIMER_ISR     TIMER2_OVF_vect
-#define HWMAP_UI_TIMER_CMD_REINIT_FOR_10ms TCNT1 = (256-(F_CPU / 256 * 10e-3 + 0.5));
+#define HWMAP_UI_TIMER_CMD_REINIT_FOR_10ms TCNT2 = (256-(F_CPU / 256 * 10e-3 + 0.5));
 // Function that initializes the UI timers and PWMs
 void ui_timer_init_10ms_overflow(void);
 
 /**************************************************
  * UI timer for LED PWM
  *************************************************/
-#define MCU_UI_PWM_A_CR OCR0B
+#define MCU_UI_PWM_A_CR OCR0A
 void mcu_init_ui_double_compare_timer_for_fast_pwm_1ms(void);
 
 /**************************************************

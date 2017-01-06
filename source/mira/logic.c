@@ -22,6 +22,7 @@
 #include "deviface.h"
 #include "hardware.h"
 #include "ui.h"
+#include MCUHEADER
 
 static uint16_t logic_main_cycle_counter;
 static uint16_t last_logic_cycles_per_50ms_event;
@@ -133,12 +134,12 @@ void logic_loop (void) {
             if (strcmp(in_string, "bvm") == 0) {
                 do_battery_measurement();
             }
-            if (strcmp(in_string, "cyc last 50ms") == 0) {
+            if (strcmp(in_string, "cyc l50") == 0) {
                 deviface_putstring("Last cycle number per 50ms event: ");
                 deviface_put_uint16(last_logic_cycles_per_50ms_event);
                 deviface_putlineend();
             }
-            if (strcmp(in_string, "cyc min 50ms") == 0) {
+            if (strcmp(in_string, "cyc m50") == 0) {
                 deviface_putstring("Minimum cycles number per 50ms event: ");
                 deviface_put_uint16(min_logic_cycles_per_50ms_event);
                 deviface_putlineend();

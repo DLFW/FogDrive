@@ -31,7 +31,7 @@ void ui_timer_init_10ms_overflow(void) {
 void mcu_init_ui_double_compare_timer_for_fast_pwm_1ms(void) {
     //TODO: it's only 1ms with 1MHz frequency: refactor name or function
     DDRB |= (1<<1);                                   // Set the pin of PWM channel B as output
-    TCCR0A = (1<<WGM01) | (1<<WGM00) | (1<<COM0A1) | (1<<COM0A0);   // Fast PWM, single slope, count from 0 to 255 (not only till compare), inverting
+    TCCR0A = (1<<WGM01) | (1<<WGM00) | (1<<COM0B1) | (1<<COM0B0);   // Fast PWM, single slope, count from 0 to 255 (not only till compare), inverting
     TCCR0B = (1<<CS00);                               // Internal clock, no prescaling
 }
 
