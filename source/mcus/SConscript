@@ -19,17 +19,5 @@ import os
 
 Import(['env'])
 
-#SConscript(Glob('*/SConscript'), exports = 'env') #recursive build
-
-srcs = Glob('*.c')
+srcs = [env['fogdrive'].mcu + ".c"]
 objs = env.Object(srcs)
-
-map_name = env['fogdrive'].build_file_name + '.map'
-elf_name = env['fogdrive'].build_file_name + '.elf'
-hex_name = env['fogdrive'].build_file_name + '.hex'
-
-elf_sources = objs + Glob('../../mcus/*.o')
-
-elf = env.Elf(elf_name, elf_sources) 
-hex = env.Hex(hex_name, elf_name)
-env.Depends(hex, elf_name)

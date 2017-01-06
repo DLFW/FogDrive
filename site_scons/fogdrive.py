@@ -56,7 +56,7 @@ class FogDrive(object):
         """
         return {
             'F_CPU' : "{f}UL".format(f = self.frequency),
-            'MCUHEADER' : "\\\"{mcu}.h\\\"".format(mcu = self.mcu)
+            'MCUHEADER' : "\\\"../../mcus/{mcu}.h\\\"".format(mcu = self.mcu)
         }
     
     @property

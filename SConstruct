@@ -24,10 +24,10 @@ FogDrives = [
         mcu = "atmega328p",
         frequency = 1000000
     ),
-    Mira(
-        mcu = "atmega328p",
-        frequency = 8000000
-    )
+    #Mira(
+        #mcu = "attiny45",
+        #frequency = 1000000
+    #)
 ]
 
 for fogdrive in FogDrives:
@@ -38,11 +38,17 @@ for fogdrive in FogDrives:
         CCFLAGS = fogdrive.cc_flags,
         CPPDEFINES = fogdrive.cpp_defines,
     )
+    
+    SConscript(
+        os.path.join("source","mcus",'SConscript'),
+        #variant_dir = os.path.join('build','fogdrive','mcus'),
+        variant_dir = os.path.join('build', 'fogdrive', 'mcus'),
+        exports = ['env']
+    )
 
     SConscript(
         os.path.join("source",fogdrive.src_directory,'SConscript'),
         variant_dir = os.path.join('build','fogdrive',fogdrive.build_directory),
-        duplicate = 0,
         exports = ['env']
     )
     
