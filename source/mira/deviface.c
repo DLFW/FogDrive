@@ -78,6 +78,12 @@ void deviface_put_uint16(uint16_t v) {
     deviface_putstring(value_s);
 }
 
+void deviface_put_float(float v, int8_t width, uint8_t prec) {
+    char value_s[20];
+    dtostrf(v, width, prec,value_s);
+    deviface_putstring(value_s);
+}
+
 ISR(USART_RX_vect) {
 #ifdef UART_ENABLED
   unsigned char nextChar;

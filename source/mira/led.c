@@ -89,7 +89,6 @@ void led_program_add_linear_dim(LED* led, uint8_t brightness, uint8_t ramp_durat
     command->cmd = COMMAND_DIM_LINEAR;
     command->dim_linear._ramp_duration = ramp_duration;
     command->dim_linear._target_brightness = brightness;
-    command->dim_linear._start_brightness = led->_current_brightness;
 }
 
 void _led_set_brightness(LED* led, uint8_t brightness) {
@@ -144,18 +143,19 @@ void led_step(LED* led) {
             break;
         }
         case COMMAND_DIM_LINEAR: {
+            if (led->_step_count == 1) {
+                    command->dim_linear._start_brightness = led->_current_brightness;
+            }
             if (command->dim_linear._ramp_duration == 0 || led->_step_count == command->dim_linear._ramp_duration) {
                 _led_set_brightness(led, command->dim_linear._target_brightness);   // we reached the final step, set the final brightness...
                 _next_command(led);                                                 // ... and go to the next command
             } else {
-                  int8_t b = (int8_t)(
-                       (
-                          (float)(command->dim_linear._target_brightness - command->dim_linear._start_brightness) * led->_step_count
-                           /
-                          (float)command->dim_linear._ramp_duration
-                       ) + 0.5 + command->dim_linear._start_brightness
+                  float a = command->dim_linear._target_brightness - command->dim_linear._start_brightness;
+                  float b = (float)command->dim_linear._ramp_duration;
+                  int8_t c = (int8_t)(
+                       (a / b) * led->_step_count + 0.5 + command->dim_linear._start_brightness
                   );
-                  _led_set_brightness(led, b);
+                  _led_set_brightness(led, c);
             }
             break;
         }

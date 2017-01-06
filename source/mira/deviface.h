@@ -35,6 +35,8 @@ void deviface_put_uint8(uint8_t v);
 
 void deviface_put_int8(int8_t v);
 
+void deviface_put_float(float v, int8_t width, uint8_t prec);
+
 void deviface_putlineend(void);
 
 void deviface_putstring(char* s);

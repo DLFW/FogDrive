@@ -28,8 +28,8 @@ static uint16_t logic_main_cycle_counter;
 static uint16_t last_logic_cycles_per_50ms_event;
 static uint16_t min_logic_cycles_per_50ms_event = 0xFFFF;
 
-uint8_t battery_voltage_unstressed = 0;
-uint8_t battery_voltage_under_load = 0;
+uint8_t battery_voltage_unstressed = 37;
+uint8_t battery_voltage_under_load = 37;
 
 static uint8_t local_bools = 0;
 #define LB_HW_IS_FIRING   1

@@ -95,8 +95,8 @@ uint8_t ui_init(void) {
 
     led_program_reset(&led);
     led_program_add_hold(&led,4);
-    led_program_add_linear_dim(&led, 99, 5);
-    led_program_add_brightness(&led, 0);
+    led_program_add_brightness(&led, 99);
+    led_program_add_linear_dim(&led, 0, 50);
     led_program_add_hold(&led,1);
     led_start_program(&led);
 
@@ -155,6 +155,8 @@ ISR( HWMAP_UI_TIMER_ISR ) {
         QueueElement* e = queue_get_write_element(&low_level_event_queue);
         e->bytes.a = LLE_50MS_PULSE;
     }
+
+    led_step(&led);
 }
 
 void _print_led_commands(LED* led) {
@@ -189,7 +191,6 @@ void ui_input_step(void) {
             QueueElement* e = queue_get_write_element(&ui_event_queue);
             e->bytes.a = UI__50MS_PULSE;
             button_step(&button);
-            led_step(&led);
         }
     }
 
@@ -232,7 +233,7 @@ void ui_input_step(void) {
             if (! (ui_local_bools & LB_LOW_VOLTAGE_DETECTED)) {
                 ui_local_bools |= LB_LOW_VOLTAGE_DETECTED;
                 led_program_reset(&led);
-                led_program_add_linear_dim(&led, 99, 10);
+                led_program_add_linear_dim(&led, 87, 20);
                 led_start_program(&led);
             }
         }
@@ -240,10 +241,10 @@ void ui_input_step(void) {
             if (! (ui_local_bools & LB_VERY_LOW_VOLTAGE_DETECTED)) {
                 ui_local_bools |= LB_VERY_LOW_VOLTAGE_DETECTED;
                 led_program_reset(&led);
-                led_program_add_linear_dim(&led, 99, 3);
-                led_program_add_hold(&led,4);
-                led_program_add_linear_dim(&led, 0, 3);
-                led_program_add_hold(&led,2);
+                led_program_add_linear_dim(&led, 99, 10);
+                led_program_add_hold(&led,22);
+                led_program_add_linear_dim(&led, 0, 10);
+                led_program_add_hold(&led,8);
                 led_program_repeat(&led,0);
                 led_start_program(&led);
             }
