@@ -206,7 +206,29 @@ void ui_input_step(void) {
             e->bytes.a = UI__FIRE_BUTTON_RELEASED;
         }
         if (button_event->bytes.a == BUTTON_EVENT_CLICK) {
-            // nothing to do for a click sequence currently...
+            if (button_event->bytes.b == 2) {
+                // double click detected: "blink" the battery voltage under load
+                uint8_t digit1 = battery_voltage_under_load / 10;
+                uint8_t digit2 = battery_voltage_under_load - digit1*10;
+                led_set_brightness(&led, 0);
+                led_program_reset(&led);
+                led_program_add_linear_dim(&led, 99, 3);
+                led_program_add_hold(&led, 13);
+                led_program_add_linear_dim(&led, 0, 3);
+                led_program_add_hold(&led, 20);
+                led_program_repeat(&led, 0, digit1 - 1);
+                led_program_add_hold(&led,45);
+                if (digit2 > 0) {
+                    led_program_add_linear_dim(&led, 99, 3);
+                    led_program_add_hold(&led, 13);
+                    led_program_add_linear_dim(&led, 0, 3);
+                    led_program_add_hold(&led, 20);
+                    if (digit2 > 1) {
+                        led_program_repeat(&led, 6, digit2 - 1);
+                    }
+                }
+                led_start_program(&led);
+            }
         }
     }
 
@@ -245,7 +267,7 @@ void ui_input_step(void) {
                 led_program_add_hold(&led,22);
                 led_program_add_linear_dim(&led, 0, 10);
                 led_program_add_hold(&led,8);
-                led_program_repeat(&led,0);
+                led_program_repeat(&led,0,0);
                 led_start_program(&led);
             }
         }

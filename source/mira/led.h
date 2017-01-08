@@ -22,7 +22,7 @@
 #include <avr/io.h>
 #include <avr/pgmspace.h>
 
-#define _LED_MAX_COMMAND_COUNT 5
+#define _LED_MAX_COMMAND_COUNT 12
 
 typedef struct {
     uint8_t cmd;
@@ -39,8 +39,8 @@ typedef struct {
         } brightness;
         struct {
             uint8_t index;
-            uint8_t _dead_;
-            uint8_t _dead__;
+            uint8_t number;
+            uint8_t counter;
         } repeat;
         struct {
             uint8_t duration;   // 0 for infinity
@@ -80,7 +80,7 @@ void led_program_add_linear_dim(LED* led, uint8_t brightness, uint8_t ramp_durat
 
 void led_program_add_hold(LED* led, uint8_t duration);
 
-void led_program_repeat(LED* led, uint8_t from_step);
+void led_program_repeat(LED* led, uint8_t from_step, uint8_t number);
 
 void led_start_program(LED* led);
 

@@ -36,7 +36,7 @@ uint8_t sm_bvm_status = SMS_BVM_IDLE;
 
 uint8_t make_measurement = 0;
 
-#define AVR_INTERNAL_REFERENCE_VOLTAGE 1125300L     // in 10^(-6) V
+#define AVR_INTERNAL_REFERENCE_VOLTAGE 1100000L     // in 10^(-6) V
 #define BVM_SMOOTHING 4
 uint8_t battery_voltage_values[BVM_SMOOTHING];
 uint8_t battery_voltage_values_ix = 0;

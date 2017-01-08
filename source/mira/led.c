@@ -62,6 +62,10 @@ void led_program_reset(LED* led) {
 LEDCommand* _get_command_to_add(LED* led) {
     if (led->_command_count < _LED_MAX_COMMAND_COUNT) {
         ++(led->_command_count);
+    } else {
+        #ifdef UART_ENABLED
+        deviface_putstring("ERROR: too much LED commands");
+        #endif
     }
     return led->_commands + led->_command_count - 1;
 }
@@ -78,10 +82,12 @@ void led_program_add_hold(LED* led, uint8_t duration) {
     command->hold.duration = duration;
 }
 
-void led_program_repeat(LED* led, uint8_t from_step) {
+void led_program_repeat(LED* led, uint8_t from_step, uint8_t number) {
     LEDCommand* command = _get_command_to_add(led);
     command->cmd = COMMAND_REPEAT;
     command->repeat.index = from_step - 1;
+    command->repeat.number = number;
+    command->repeat.counter = 0;
 }
 
 void led_program_add_linear_dim(LED* led, uint8_t brightness, uint8_t ramp_duration) {
@@ -120,7 +126,13 @@ void _next_command(LED* led) {
                     break;
                 }
                 case COMMAND_REPEAT: {
-                    led->_current_command_ix = led->_commands[led->_current_command_ix].repeat.index;
+                    LEDCommand* cmd = &led->_commands[led->_current_command_ix];
+                    if (cmd->repeat.number == 0 || cmd->repeat.counter++ < cmd->repeat.number) {
+                        led->_current_command_ix = cmd->repeat.index;
+                    } else {
+                        // else, go on with the next command...
+                        cmd->repeat.counter = 0; // ...but set the counter back which is needed if we have nested repeats
+                    }
                     break;
                 }
             }
