@@ -24,6 +24,7 @@
 #include "led.h"
 #include "button.h"
 #include <avr/pgmspace.h>
+#include <avr/sleep.h>
 #include MCUHEADER
 
 // Bit mask for switch 0
@@ -176,6 +177,23 @@ void _print_led_commands(LED* led) {
 #endif
 }
 
+
+void power_down_till_pin_change(void) {
+    PCICR |= (1 << PCIE0);                      //enable pin change iterrupt on PCINT[7..0] which includes the button
+    PCMSK0 |= (1 << PCINT3);                    // and activate the PCINT for the button pin
+    set_sleep_mode(SLEEP_MODE_PWR_DOWN);        // set sleep mode (power down, deepest sleep)...
+    sleep_mode();                               // ...and enter it
+    PCICR &= ~(1 << PCIE0);                     // we're waking up! disable pin change iterrupt on PCINT[7..0]
+}
+
+ISR(PCINT0_vect) {
+    // Nothing to do in this interrupt routine.
+    // It must just be defined since we need that interrupt to awake from "power down" sleep mode.
+}
+
+
+
+
 void ui_input_step(void) {
 
     // Check for events from the timer ISR and react
@@ -206,32 +224,42 @@ void ui_input_step(void) {
             e->bytes.a = UI__FIRE_BUTTON_RELEASED;
         }
         if (button_event->bytes.a == BUTTON_EVENT_CLICK) {
-            if (button_event->bytes.b == 2) {
-                // double click detected: "blink" the battery voltage under load
-                uint8_t digit1 = battery_voltage_under_load / 10;
-                uint8_t digit2 = battery_voltage_under_load - digit1*10;
-                led_set_brightness(&led, 0);
-                led_program_reset(&led);
-                led_program_add_linear_dim(&led, 99, 3);
-                led_program_add_hold(&led, 13);
-                led_program_add_linear_dim(&led, 0, 3);
-                led_program_add_hold(&led, 20);
-                led_program_repeat(&led, 0, digit1 - 1);
-                led_program_add_hold(&led,45);
-                if (digit2 > 0) {
+            switch (button_event->bytes.b) {
+                case 2:
+                {
+                    // double click detected: "blink" the battery voltage under load
+                    uint8_t digit1 = battery_voltage_under_load / 10;
+                    uint8_t digit2 = battery_voltage_under_load - digit1*10;
+                    led_set_brightness(&led, 0);
+                    led_program_reset(&led);
                     led_program_add_linear_dim(&led, 99, 3);
                     led_program_add_hold(&led, 13);
                     led_program_add_linear_dim(&led, 0, 3);
                     led_program_add_hold(&led, 20);
-                    if (digit2 > 1) {
-                        led_program_repeat(&led, 6, digit2 - 1);
+                    led_program_repeat(&led, 0, digit1 - 1);
+                    led_program_add_hold(&led,45);
+                    if (digit2 > 0) {
+                        led_program_add_linear_dim(&led, 99, 3);
+                        led_program_add_hold(&led, 13);
+                        led_program_add_linear_dim(&led, 0, 3);
+                        led_program_add_hold(&led, 20);
+                        if (digit2 > 1) {
+                            led_program_repeat(&led, 6, digit2 - 1);
+                        }
                     }
+                    led_start_program(&led);
+                    break;
                 }
-                led_start_program(&led);
+                case 4:
+                {
+                    // quad-click detected: switch off
+                    deviface_putline("DOWN");
+                    power_down_till_pin_change();
+                    deviface_putline("SNOOZE");
+                }
             }
         }
     }
-
     // Check for pending tasks from the logic
     #ifdef UART_ENABLED
     if (ui_local_bools & LB_PRINT_LED_INFO) {

@@ -69,5 +69,10 @@ void mcu__enabled_one_adc_with_vcc_reference_and_vgb_input(void);
 #define MCU__START_SINGLE_ADC_CONVERSION ADCSRA |= (1<<ADSC)
 #define MCU__SINGLE_ADC_CONVERSION_IS_DONE ! (ADCSRA & (1<<ADSC))
 
+/**************************************************
+ * Power Down
+ *************************************************/
+void mcu_power_down_till_pin_change(void);
+
 #endif // ATMEGA328P_H
 

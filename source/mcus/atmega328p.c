@@ -17,6 +17,8 @@
 */
 
 #include "atmega328p.h"
+#include <avr/interrupt.h>
+#include <avr/sleep.h>
 
 
 // Baud rate related calculation
@@ -53,3 +55,7 @@ void mcu__enabled_one_adc_with_vcc_reference_and_vgb_input(void) {
     ADMUX |= (1<<MUX3) | (1<<MUX2) | (1<<MUX1);  //input voltage selection: 1.1V (V_BG)
     ADCSRA |= (1<<ADEN);                         //activate ADC
 }
+
+void mcu_power_down_till_pin_change(void) {
+}
+
