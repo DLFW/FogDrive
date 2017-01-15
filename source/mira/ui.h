@@ -24,6 +24,7 @@
 #define UI__FIRE_BUTTON_PRESSED 1
 #define UI__FIRE_BUTTON_RELEASED 2
 #define UI__50MS_PULSE 3
+#define UI__SWITCH_OFF 4
 
 // A queue that transports user interface inputs (low level command from the user) to the logic module
 extern Queue ui_event_queue;
@@ -31,6 +32,8 @@ extern Queue ui_event_queue;
 uint8_t ui_init(void);
 
 void ui_input_step(void);
+
+void ui_power_down(void);
 
 void ui_fire_is_on(void);
 

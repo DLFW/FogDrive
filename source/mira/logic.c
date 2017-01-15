@@ -64,6 +64,14 @@ void logic_loop (void) {
             if (e->bytes.a == UI__FIRE_BUTTON_RELEASED) {
                 hardware_fire_off();
             }
+            if (e->bytes.a == UI__SWITCH_OFF) {
+                deviface_putline("DOWN");
+                hardware_fire_off();
+                hardware_power_down();
+                ui_power_down();
+                mcu_power_down_till_pin_change(); // go to sleep
+                deviface_putline("SNOOZE");
+            }
             if (e->bytes.a == UI__50MS_PULSE) {
                 // 1) do the main cycle time measurement (for development purposes only)
                 if (last_logic_cycle_value < logic_main_cycle_counter) {

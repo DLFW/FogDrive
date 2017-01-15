@@ -57,5 +57,14 @@ void mcu__enabled_one_adc_with_vcc_reference_and_vgb_input(void) {
 }
 
 void mcu_power_down_till_pin_change(void) {
+    PCICR |= (1 << PCIE0);                      //enable pin change iterrupt on PCINT[7..0] which includes the button
+    PCMSK0 |= (1 << PCINT3);                    // and activate the PCINT for the button pin
+    set_sleep_mode(SLEEP_MODE_PWR_DOWN);        // set sleep mode (power down, deepest sleep)...
+    sleep_mode();                               // ...and enter it
+    PCICR &= ~(1 << PCIE0);                     // we're waking up! disable pin change iterrupt on PCINT[7..0]
 }
 
+ISR(PCINT0_vect) {
+    // Nothing to do in this interrupt routine.
+    // It must just be defined since we need that interrupt to awake from "power down" sleep mode.
+}

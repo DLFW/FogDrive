@@ -39,6 +39,8 @@ void hardware_fire_off(void);
 
 void do_battery_measurement(void);
 
+void hardware_power_down(void);
+
 
 #endif // HARDWARE_H
 

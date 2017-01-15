@@ -24,7 +24,6 @@
 #include "led.h"
 #include "button.h"
 #include <avr/pgmspace.h>
-#include <avr/sleep.h>
 #include MCUHEADER
 
 // Bit mask for switch 0
@@ -178,22 +177,6 @@ void _print_led_commands(LED* led) {
 }
 
 
-void power_down_till_pin_change(void) {
-    PCICR |= (1 << PCIE0);                      //enable pin change iterrupt on PCINT[7..0] which includes the button
-    PCMSK0 |= (1 << PCINT3);                    // and activate the PCINT for the button pin
-    set_sleep_mode(SLEEP_MODE_PWR_DOWN);        // set sleep mode (power down, deepest sleep)...
-    sleep_mode();                               // ...and enter it
-    PCICR &= ~(1 << PCIE0);                     // we're waking up! disable pin change iterrupt on PCINT[7..0]
-}
-
-ISR(PCINT0_vect) {
-    // Nothing to do in this interrupt routine.
-    // It must just be defined since we need that interrupt to awake from "power down" sleep mode.
-}
-
-
-
-
 void ui_input_step(void) {
 
     // Check for events from the timer ISR and react
@@ -216,14 +199,17 @@ void ui_input_step(void) {
     QueueElement* button_event = queue_get_read_element(&(button.button_event_queue));
     if (button_event != 0) {
         if (button_event->bytes.a == BUTTON_EVENT_PRESSED) {
+            // button pressed: fire!
             QueueElement* e = queue_get_write_element(&ui_event_queue);
             e->bytes.a = UI__FIRE_BUTTON_PRESSED;
         }
         if (button_event->bytes.a == BUTTON_EVENT_RELEASED) {
+            //button released: fire off!
             QueueElement* e = queue_get_write_element(&ui_event_queue);
             e->bytes.a = UI__FIRE_BUTTON_RELEASED;
         }
         if (button_event->bytes.a == BUTTON_EVENT_CLICK) {
+            // click sequence detected
             switch (button_event->bytes.b) {
                 case 2:
                 {
@@ -253,9 +239,8 @@ void ui_input_step(void) {
                 case 4:
                 {
                     // quad-click detected: switch off
-                    deviface_putline("DOWN");
-                    power_down_till_pin_change();
-                    deviface_putline("SNOOZE");
+                    QueueElement* e = queue_get_write_element(&ui_event_queue);
+                    e->bytes.a = UI__SWITCH_OFF;
                 }
             }
         }
@@ -317,4 +302,11 @@ void ui_fire_is_off(void) {
 
 void ui_print_led_info(void) {
     ui_local_bools |= LB_PRINT_LED_INFO;
+}
+
+void ui_power_down() {
+    led_program_reset(&led);        // cancel any LED program if some is running
+    led_set_brightness(&led, 0);    // switch of the LED
+    queue_clear(&ui_event_queue);   // remove unprocessed UI events if there are any
+    // the UI timer ISR is just freezed as it is
 }

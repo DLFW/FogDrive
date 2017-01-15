@@ -44,4 +44,6 @@ QueueElement* queue_get_read_element(Queue *queue);
 
 void queue_initialize(Queue *queue, uint8_t number_of_elements, QueueElement *queue_element_array);
 
+void queue_clear(Queue *queue);
+
 #endif // QUEUE_H

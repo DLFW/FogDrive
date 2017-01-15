@@ -37,9 +37,13 @@ QueueElement* queue_get_read_element(Queue* queue) {
     return result;
 }
 
-void queue_initialize(Queue *queue, uint8_t number_of_elements, QueueElement *queue_element_array) {
+void queue_clear(Queue *queue) {
     queue->read_index = 0;
     queue->write_index = 0;
+}
+
+void queue_initialize(Queue *queue, uint8_t number_of_elements, QueueElement *queue_element_array) {
+    queue_clear(queue);
     queue->number_of_elements = number_of_elements;
     queue->queueElementArray = queue_element_array;
 }

@@ -72,6 +72,11 @@ void hardware_fire_off(void) {
     e->bytes.a = HW__FIRE_OFF;
 }
 
+void hardware_power_down() {
+    sm_bvm_status = SMS_BVM_IDLE;       // stop the battery voltage measure in case it's running
+    queue_clear(&hw_event_queue);        // clear unprocessed events if there are some
+}
+
 void sm_bvm(void) {
     switch (sm_bvm_status) {
         case SMS_BVM_IDLE: {
