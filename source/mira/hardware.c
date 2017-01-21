@@ -18,6 +18,7 @@
 
 #include <avr/io.h>
 
+#include "logic.h"
 #include "hardware.h"
 #include "deviface.h"
 #include "queue.h"
@@ -75,6 +76,10 @@ void hardware_fire_off(void) {
 void hardware_power_down() {
     sm_bvm_status = SMS_BVM_IDLE;       // stop the battery voltage measure in case it's running
     queue_clear(&hw_event_queue);        // clear unprocessed events if there are some
+}
+
+void hardware_power_up() {
+    // nothing to do
 }
 
 void sm_bvm(void) {
@@ -154,7 +159,10 @@ void sm_bvm(void) {
 }
 
 void hardware_step(void) {
-    sm_bvm();
+    if (~ global_state && GS_AWAKENING) {
+        // if the device is not jus awakening (but really switched on)
+        sm_bvm();
+    }
 }
 
 void do_battery_measurement(void) {

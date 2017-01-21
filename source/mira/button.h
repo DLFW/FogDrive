@@ -16,6 +16,28 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+/** \defgroup button Button
+*   \brief Abstraction for a button switch to generate press, release and click events.
+*
+*   This module’s API consists of a struct type definition (#Button) and a few functions which all takes a reference
+*   to a #Button variable as first argument. This is kind of object oriented, where the struct keeps the buttons state
+*   and the methods act always exclusively on the struct.
+*
+*   A #Button struct is first initialized by the use of button_init(Button* button). During the buttons runtime,
+*   the function void button_step(Button* button) must be called cyclically. Furthermore, each time the (physical)
+*   button is pressed (debounced, if necessary), button_pressed(Button* button). If the (physical) button is released,
+*   button_released(Button* button) must be invoked. So, this module doesn't encapsulate the hardware part since it is
+*   highly application dependent.
+*
+*   As a result from the mentioned inputs (cyclical step and pressed and released events), this button logic generate
+*   click, pressed and released events where pressed is only emitted if the button was pressed long enough to “be not
+*   a click”.
+*
+*   The output events must be actively taken from a \ref queue. The events are decoded as integers, defined as preprocessor
+*   definitions \e BUTTON_EVENT_x.
+*
+*/
+
 #ifndef BUTTON_H
 #define BUTTON_H
 
@@ -35,6 +57,14 @@ typedef struct {
     uint8_t _click_count;
 } Button;
 
+/**
+ * \brief Must be called cyclically for each button instance.
+ *
+ * This function must be called cyclically and is used by the button logic for the timing which is
+ * important for the detection click events.
+ *
+ * \param button the button instance
+ */
 void button_step(Button* button);
 
 void button_init(Button* button);

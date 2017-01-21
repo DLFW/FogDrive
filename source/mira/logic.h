@@ -28,6 +28,10 @@
 
 extern uint8_t battery_voltage_unstressed;
 extern uint8_t battery_voltage_under_load;
+extern uint8_t global_state;
+
+#define GS_ON        2  // device is on
+#define GS_AWAKENING 3  // device just left deep sleep because of interrupt but the on-command from the UI is not received yet
 
 
 uint8_t logic_init(void);

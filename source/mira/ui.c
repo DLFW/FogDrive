@@ -196,92 +196,113 @@ void ui_input_step(void) {
     }
 
     // Check for events from the button and react
-    QueueElement* button_event = queue_get_read_element(&(button.button_event_queue));
-    if (button_event != 0) {
-        if (button_event->bytes.a == BUTTON_EVENT_PRESSED) {
-            // button pressed: fire!
-            QueueElement* e = queue_get_write_element(&ui_event_queue);
-            e->bytes.a = UI__FIRE_BUTTON_PRESSED;
+    if (global_state == GS_AWAKENING) {
+        QueueElement* button_event = queue_get_read_element(&(button.button_event_queue));
+        if (button_event != 0) {
+            if (button_event->bytes.a == BUTTON_EVENT_CLICK & button_event->bytes.b == 4) {
+                QueueElement* e = queue_get_write_element(&ui_event_queue);
+                e->bytes.a = UI__SWITCH_ON;
+            } else {
+                QueueElement* e = queue_get_write_element(&ui_event_queue);
+                e->bytes.a = UI__ABORT_AWAKENING;
+            }
         }
-        if (button_event->bytes.a == BUTTON_EVENT_RELEASED) {
-            //button released: fire off!
-            QueueElement* e = queue_get_write_element(&ui_event_queue);
-            e->bytes.a = UI__FIRE_BUTTON_RELEASED;
-        }
-        if (button_event->bytes.a == BUTTON_EVENT_CLICK) {
-            // click sequence detected
-            switch (button_event->bytes.b) {
-                case 2:
-                {
-                    // double click detected: "blink" the battery voltage under load
-                    uint8_t digit1 = battery_voltage_under_load / 10;
-                    uint8_t digit2 = battery_voltage_under_load - digit1*10;
-                    led_set_brightness(&led, 0);
-                    led_program_reset(&led);
-                    led_program_add_linear_dim(&led, 99, 3);
-                    led_program_add_hold(&led, 13);
-                    led_program_add_linear_dim(&led, 0, 3);
-                    led_program_add_hold(&led, 20);
-                    led_program_repeat(&led, 0, digit1 - 1);
-                    led_program_add_hold(&led,45);
-                    if (digit2 > 0) {
+
+    } else {
+        QueueElement* button_event = queue_get_read_element(&(button.button_event_queue));
+        if (button_event != 0) {
+            if (button_event->bytes.a == BUTTON_EVENT_PRESSED) {
+                // button pressed: fire!
+                QueueElement* e = queue_get_write_element(&ui_event_queue);
+                e->bytes.a = UI__FIRE_BUTTON_PRESSED;
+            }
+            if (button_event->bytes.a == BUTTON_EVENT_RELEASED) {
+                //button released: fire off!
+                QueueElement* e = queue_get_write_element(&ui_event_queue);
+                e->bytes.a = UI__FIRE_BUTTON_RELEASED;
+            }
+            if (button_event->bytes.a == BUTTON_EVENT_CLICK) {
+                // click sequence detected
+                switch (button_event->bytes.b) {
+                    case 2:
+                    {
+                        // double click detected: "blink" the battery voltage under load
+                        uint8_t digit1 = battery_voltage_under_load / 10;
+                        uint8_t digit2 = battery_voltage_under_load - digit1*10;
+                        led_set_brightness(&led, 0);
+                        led_program_reset(&led);
                         led_program_add_linear_dim(&led, 99, 3);
                         led_program_add_hold(&led, 13);
                         led_program_add_linear_dim(&led, 0, 3);
                         led_program_add_hold(&led, 20);
-                        if (digit2 > 1) {
-                            led_program_repeat(&led, 6, digit2 - 1);
+                        led_program_repeat(&led, 0, digit1 - 1);
+                        led_program_add_hold(&led,45);
+                        if (digit2 > 0) {
+                            led_program_add_linear_dim(&led, 99, 3);
+                            led_program_add_hold(&led, 13);
+                            led_program_add_linear_dim(&led, 0, 3);
+                            led_program_add_hold(&led, 20);
+                            if (digit2 > 1) {
+                                led_program_repeat(&led, 6, digit2 - 1);
+                            }
                         }
+                        led_start_program(&led);
+                        break;
                     }
-                    led_start_program(&led);
-                    break;
-                }
-                case 4:
-                {
-                    // quad-click detected: switch off
-                    QueueElement* e = queue_get_write_element(&ui_event_queue);
-                    e->bytes.a = UI__SWITCH_OFF;
+                    case 4:
+                    {
+                        led_program_reset(&led);
+                        led_program_add_brightness(&led, 80);
+                        led_program_add_linear_dim(&led, 0, 40);
+                        led_program_add_hold(&led, 10);
+                        led_program_repeat(&led, 0, 1);
+                        led_start_program(&led);
+                        // we are switched on (awake) and switch off now (go to sleep)
+                        QueueElement* e = queue_get_write_element(&ui_event_queue);
+                        e->bytes.a = UI__SWITCH_OFF;
+                    }
                 }
             }
         }
-    }
-    // Check for pending tasks from the logic
-    #ifdef UART_ENABLED
-    if (ui_local_bools & LB_PRINT_LED_INFO) {
-        ui_local_bools &= ~LB_PRINT_LED_INFO;
-        deviface_putstring("LED 1# b: ");
-        deviface_put_uint8(led._current_brightness);
-        deviface_putstring(", ocr: ");
-        deviface_put_uint8(MCU_UI_PWM_A_CR);
-        deviface_putstring(", ccnt: ");
-        deviface_put_uint8(led._command_count);
-        deviface_putstring(", cix: ");
-        deviface_put_uint8(led._current_command_ix);
-        deviface_putlineend();
-        _print_led_commands(&led);
-    }
-    #endif
 
-    // Battery voltage indicator
-    if (ui_local_bools & LB_FIRE_IS_ON) {
-        if (battery_voltage_under_load < BATTERY_VOLTAGE_LOW_VALUE) {
-            if (! (ui_local_bools & LB_LOW_VOLTAGE_DETECTED)) {
-                ui_local_bools |= LB_LOW_VOLTAGE_DETECTED;
-                led_program_reset(&led);
-                led_program_add_linear_dim(&led, 87, 20);
-                led_start_program(&led);
-            }
+        // Check for pending tasks from the logic
+        #ifdef UART_ENABLED
+        if (ui_local_bools & LB_PRINT_LED_INFO) {
+            ui_local_bools &= ~LB_PRINT_LED_INFO;
+            deviface_putstring("LED 1# b: ");
+            deviface_put_uint8(led._current_brightness);
+            deviface_putstring(", ocr: ");
+            deviface_put_uint8(MCU_UI_PWM_A_CR);
+            deviface_putstring(", ccnt: ");
+            deviface_put_uint8(led._command_count);
+            deviface_putstring(", cix: ");
+            deviface_put_uint8(led._current_command_ix);
+            deviface_putlineend();
+            _print_led_commands(&led);
         }
-        if (battery_voltage_under_load < BATTERY_VOLTAGE_VERY_LOW_VALUE) {
-            if (! (ui_local_bools & LB_VERY_LOW_VOLTAGE_DETECTED)) {
-                ui_local_bools |= LB_VERY_LOW_VOLTAGE_DETECTED;
-                led_program_reset(&led);
-                led_program_add_linear_dim(&led, 99, 10);
-                led_program_add_hold(&led,22);
-                led_program_add_linear_dim(&led, 0, 10);
-                led_program_add_hold(&led,8);
-                led_program_repeat(&led,0,0);
-                led_start_program(&led);
+        #endif
+
+        // Battery voltage indicator
+        if (ui_local_bools & LB_FIRE_IS_ON) {
+            if (battery_voltage_under_load < BATTERY_VOLTAGE_LOW_VALUE) {
+                if (! (ui_local_bools & LB_LOW_VOLTAGE_DETECTED)) {
+                    ui_local_bools |= LB_LOW_VOLTAGE_DETECTED;
+                    led_program_reset(&led);
+                    led_program_add_linear_dim(&led, 87, 20);
+                    led_start_program(&led);
+                }
+            }
+            if (battery_voltage_under_load < BATTERY_VOLTAGE_VERY_LOW_VALUE) {
+                if (! (ui_local_bools & LB_VERY_LOW_VOLTAGE_DETECTED)) {
+                    ui_local_bools |= LB_VERY_LOW_VOLTAGE_DETECTED;
+                    led_program_reset(&led);
+                    led_program_add_linear_dim(&led, 99, 10);
+                    led_program_add_hold(&led,22);
+                    led_program_add_linear_dim(&led, 0, 10);
+                    led_program_add_hold(&led,8);
+                    led_program_repeat(&led,0,0);
+                    led_start_program(&led);
+                }
             }
         }
     }
@@ -309,4 +330,13 @@ void ui_power_down() {
     led_set_brightness(&led, 0);    // switch of the LED
     queue_clear(&ui_event_queue);   // remove unprocessed UI events if there are any
     // the UI timer ISR is just freezed as it is
+}
+
+void ui_power_up() {
+    led_program_reset(&led);
+    led_program_add_linear_dim(&led, 80, 40);
+    led_program_add_hold(&led, 10);
+    led_program_add_brightness(&led, 0);
+    led_program_repeat(&led, 0, 1);
+    led_start_program(&led);
 }
