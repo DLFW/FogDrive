@@ -20,11 +20,13 @@
 #include <avr/interrupt.h>
 #include "ui.h"
 #include "logic.h"
-#include "deviface.h"
 #include "led.h"
 #include "button.h"
 #include <avr/pgmspace.h>
 #include MCUHEADER
+#ifdef UART_ENABLED
+    #include "deviface.h"
+#endif
 
 // Bit mask for switch 0
 #define CTRLMAP_SWITCH_0_MASK   (1<<HWMAP_UI_SWITCH_0_IX)
@@ -43,7 +45,7 @@
 
 // User interface input queue (which is an external, see @ui.h#Queue ui_input_queue) and its element array
 Queue ui_event_queue;
-QueueElement ui_event_queue_elements[5];
+QueueElement ui_event_queue_elements[4];
 
 /**
  * Queue that transports low level control events to the ui state machines.
@@ -55,7 +57,7 @@ static Queue low_level_event_queue;
 /**
  * Queue array for #ui_input_queue.
  */
-static QueueElement low_level_event_queue_array[5];
+static QueueElement low_level_event_queue_array[3];
 
 static LED led;
 
@@ -67,13 +69,22 @@ static uint8_t ui_local_bools;
 #define LB_LOW_VOLTAGE_DETECTED 4
 #define LB_VERY_LOW_VOLTAGE_DETECTED 8
 
+void led_blink(void) {
+    led_program_reset(&led);
+    led_program_add_hold(&led,4);
+    led_program_add_brightness(&led, 99);
+    led_program_add_linear_dim(&led, 0, 50);
+    led_program_add_hold(&led,1);
+    led_start_program(&led);
+}
+
 uint8_t ui_init(void) {
 
     ui_local_bools = 0;
 
     // init queues
-    queue_initialize(&ui_event_queue, 5, ui_event_queue_elements);
-    queue_initialize(&low_level_event_queue, 5, low_level_event_queue_array);
+    queue_initialize(&ui_event_queue, 4, ui_event_queue_elements);
+    queue_initialize(&low_level_event_queue, 3, low_level_event_queue_array);
 
     // init switch pins
     HWMAP_UI_SWITCH_DDR &= ~ALL_SWITCHES;                // configure all input pins as input by setting the related direction bits to 0
@@ -93,12 +104,7 @@ uint8_t ui_init(void) {
     // init button logic
     button_init(&button);
 
-    led_program_reset(&led);
-    led_program_add_hold(&led,4);
-    led_program_add_brightness(&led, 99);
-    led_program_add_linear_dim(&led, 0, 50);
-    led_program_add_hold(&led,1);
-    led_start_program(&led);
+    led_blink();
 
     return 0;
 }
@@ -251,12 +257,7 @@ void ui_input_step(void) {
                     }
                     case 4:
                     {
-                        led_program_reset(&led);
-                        led_program_add_brightness(&led, 80);
-                        led_program_add_linear_dim(&led, 0, 40);
-                        led_program_add_hold(&led, 10);
-                        led_program_repeat(&led, 0, 1);
-                        led_start_program(&led);
+                        led_blink();
                         // we are switched on (awake) and switch off now (go to sleep)
                         QueueElement* e = queue_get_write_element(&ui_event_queue);
                         e->bytes.a = UI__SWITCH_OFF;
@@ -333,10 +334,5 @@ void ui_power_down() {
 }
 
 void ui_power_up() {
-    led_program_reset(&led);
-    led_program_add_linear_dim(&led, 80, 40);
-    led_program_add_hold(&led, 10);
-    led_program_add_brightness(&led, 0);
-    led_program_repeat(&led, 0, 1);
-    led_start_program(&led);
+    led_blink();
 }

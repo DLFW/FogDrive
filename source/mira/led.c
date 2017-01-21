@@ -17,8 +17,12 @@
 */
 
 #import "led.h"
-#import "deviface.h"
+#include <avr/pgmspace.h>
 #include MCUHEADER
+#ifdef UART_ENABLED
+    #include "deviface.h"
+#endif
+
 
 static const uint8_t led_pwmtable[100] PROGMEM =        // created by "valuearray.py -f logarithmic -a 5 -b 255 -n 100"
 {

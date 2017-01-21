@@ -28,8 +28,7 @@ volatile uint8_t uart_str_count = 0;
 volatile char uart_string[UART_MAXSTRLEN + 1] = "";
 
 
-//Queue character_output_queue;
-//QueueElement character_output_queue_array[30];
+#ifdef UART_ENABLED
 
 void deviface_init(void) {
     uart_init_8_plus_1();
@@ -106,3 +105,5 @@ ISR(USART_RX_vect) {
   }
 #endif
 }
+
+#endif

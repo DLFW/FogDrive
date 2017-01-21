@@ -19,13 +19,18 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include "logic.h"
-#include "deviface.h"
 #include "hardware.h"
 #include "ui.h"
 
+#ifdef UART_ENABLED
+    #include "deviface.h"
+#endif
+
 int main (void)
 {
-    deviface_init();
+    #ifdef UART_ENABLED
+        deviface_init();
+    #endif
     hardware_init();
     ui_init();
     logic_init();

@@ -24,10 +24,10 @@ FogDrives = [
         mcu = "atmega328p",
         frequency = 1000000
     ),
-    #Mira(
-        #mcu = "attiny45",
-        #frequency = 1000000
-    #)
+    Mira(
+        mcu = "attiny45",
+        frequency = 1000000
+    )
 ]
 
 for fogdrive in FogDrives:

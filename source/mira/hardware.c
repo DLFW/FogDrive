@@ -20,9 +20,11 @@
 
 #include "logic.h"
 #include "hardware.h"
-#include "deviface.h"
 #include "queue.h"
 #include MCUHEADER
+#ifdef UART_ENABLED
+    #include "deviface.h"
+#endif
 
 #define CTRLMAP_FIRE_BIT_MASK   (1 << HWMAP_HW_FIRE_BIT_IX)
 #define ALL_OUT_BITS            CTRLMAP_FIRE_BIT_MASK
@@ -60,14 +62,18 @@ uint8_t hardware_init(void) {
 }
 
 void hardware_fire_on(void) {
+    #ifdef UART_ENABLED
     deviface_putline(">Fire On");
+    #endif
     HWMAP_HW_FIRE_PORT = HWMAP_HW_FIRE_PORT | CTRLMAP_FIRE_BIT_MASK;
     QueueElement* e = queue_get_write_element(&hw_event_queue);
     e->bytes.a = HW__FIRE_ON;
 }
 
 void hardware_fire_off(void) {
+    #ifdef UART_ENABLED
     deviface_putline(">Fire Off");
+    #endif
     HWMAP_HW_FIRE_PORT = HWMAP_HW_FIRE_PORT & ~CTRLMAP_FIRE_BIT_MASK;
     QueueElement* e = queue_get_write_element(&hw_event_queue);
     e->bytes.a = HW__FIRE_OFF;

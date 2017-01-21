@@ -20,7 +20,6 @@
 #define LED_H
 
 #include <avr/io.h>
-#include <avr/pgmspace.h>
 
 #define _LED_MAX_COMMAND_COUNT 12
 

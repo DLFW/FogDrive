@@ -19,10 +19,12 @@
 #include <avr/io.h>
 #include <util/delay.h>
 #include "logic.h"
-#include "deviface.h"
 #include "hardware.h"
 #include "ui.h"
 #include MCUHEADER
+#ifdef UART_ENABLED
+    #include "deviface.h"
+#endif
 
 
 /*
@@ -61,7 +63,6 @@ void logic_loop (void) {
     // lets enter the main loop
 
     while(1) {
-
         ui_input_step();    // the user interface gets its cycle
         hardware_step();    // the hardware gets its cycle
 

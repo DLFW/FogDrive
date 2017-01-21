@@ -17,6 +17,8 @@
 */
 
 #include "attiny45.h"
+#include <avr/interrupt.h>
+#include <avr/sleep.h>
 
 void uart_init_8_plus_1(void) {
     // No UART for the Tiny
@@ -41,4 +43,15 @@ void mcu__enabled_one_adc_with_vcc_reference_and_vgb_input(void) {
     ADCSRA |= (1<<ADEN);                         //activate ADC
 }
 
-void mcu_power_down_till_pin_change(void){}
+void mcu_power_down_till_pin_change(void) {
+    GIMSK |= (1 << PCIE);                      //enable pin change iterrupt on PCINT[7..0] which includes the button
+    PCMSK |= (1 << PCINT2);                    // and activate the PCINT for the button pin
+    set_sleep_mode(SLEEP_MODE_PWR_DOWN);       // set sleep mode (power down, deepest sleep)...
+    sleep_mode();                              // ...and enter it
+    GIMSK &= ~(1 << PCIE);                     // we're waking up! disable pin change iterrupt on PCINT[7..0]
+}
+
+ISR(PCINT0_vect) {
+    // Nothing to do in this interrupt routine.
+    // It must just be defined since we need that interrupt to awake from "power down" sleep mode.
+}
