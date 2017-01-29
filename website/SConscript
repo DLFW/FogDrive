@@ -16,39 +16,11 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ###############################################################################
 
-import os
-from fogdrive import Mira
-
-FogDrives = [
-    Mira(
-        mcu = "atmega328p",
-        frequency = 1000000
-    ),
-    Mira(
-        mcu = "attiny45",
-        frequency = 1000000
-    )
-]
-
-for fogdrive in FogDrives:
-    env = Environment(
-        tools = ['avrgcc'],
-        fogdrive = fogdrive,
-        MCU = fogdrive.mcu,
-        CCFLAGS = fogdrive.cc_flags,
-        CPPDEFINES = fogdrive.cpp_defines,
-    )
-    
-    SConscript(
-        os.path.join("source","mcus",'SConscript'),
-        variant_dir = os.path.join('build', 'fogdrive', 'mcus'),
-        exports = ['env']
-    )
-
-    SConscript(
-        os.path.join("source",fogdrive.src_directory,'SConscript'),
-        variant_dir = os.path.join('build','fogdrive',fogdrive.build_directory),
-        exports = ['env']
-    )
-
-SConscript(os.path.join("website",'SConscript'))
+env=Environment()
+sphinx = Tool('sphinx4scons')
+sphinx(env)
+env.Sphinx(
+    target='../build/website',
+    source='source',
+    builder='html'
+)
