@@ -18,19 +18,68 @@
 .. FogDrive documentation master file, created by
    sphinx-quickstart on Thu Sep 29 23:41:44 2016.
    
+   
 
+===================
 Welcome to FogDrive
 ===================
 
-FogDrive is project that aims to provide free and open source electronics for controling vaping devices.
+FogDrive is project that aims to provide free and open source electronics for controlling vaping devices.
 This includes the circuit specifications, parts lists, proposals on how to build the actual board
-and – last but not least – the firmware for the microcontroller which is part of the circuit.
+and – last but not least – the firmware for the micro-controller which is part of the circuit.
 
 FogDrive is a free and open project, published under the `GNU General Public License`_, version 3.
 
-FogDrive is under early development. Currently, it cannot provide anything which would be directly usabel. If you’re interested in building your own mod by the help of such a project, check back in a couple weeks or a few months.
+.. toctree::
+    
+    mira
+    users
+    developers
+
+
+FogDrive is under early development. Currently, it provides one simple working circuit in beta status, namely :ref:`mira`.
+Each of the (hopefully) multiple circuits the project will provide in the future is called “a FogDrive”.
+So, Mira is the first FogDrive the FogDrive project provides. :)
+
+
+
+     
+.. image:: images/mira_button.png
+    :target: mira.html
+    
+Mira is the first simple FogDrive that just switches the vaporizer on and off via a MOSFET.
+The vaporizer is driven directly by the battery. In addition, Mira supports a few tiny comfort
+features like battery voltage supervision.
+
+.. image:: images/users_button.png
+    :target: users.html
+     
+Well, there are two kind of stakeholders of FogDrive, the *Modder* who builds and uses a FogDrive to build an actual vape mod,
+and the *Vapor*, the end user, who uses a mod with a FogDrive to vape. :) While the latter one might only be interested in some
+background information (you’re welcome to browse this pages, of course!), the “User Documentation” here addresses the modder
+who has to build a FogDrive.
+
+.. image:: images/developer_button.png
+    :target: developers.html
+    
+     
+You can also work on FogDrives sources, the circuits, the firmware or the documentation. You can do that to adapt the projects for your needs.
+Since Mira for example does not have any possibility to get configured, the sources are the only way to – for example – change the four-time-click
+for switching the device on and off into a triple click. Furthermore (and even better :)), you can help the project by contributing to the development.
+Add some features or improve the circuits!
+FogDrive could definitely need some help by some electronic geeks, micro-controller hackers
+and even some modders who wants to figure out clever ways to integrate a FogDrive in self-build or reused mods.
+
+Supporting FogDrive
+===================
+
+
+Future
+======
 
 As of now, we have a few rought milestones in mind:
+
+# Creating the base for second FogDrive.
 
 #. Creating a first circuit only passing the battery voltage unregulated, providing battery supervision and switching the device on and off
 #. Providing ready-to-use builds of the project
@@ -44,19 +93,12 @@ For all of those out there that are interested to participate in the development
 
 The very first control of the FogDrive project might probably be a simple MOSFET switch circuit, enhanced by a battery voltage measurement with a LED indicator and a multi-click on/off-switch. It might get enhanced then by a coil resistance measurement, a display and maybe some small fancy features.
 
-.. 
 
-..  Further Contents:
-
-    .. toctree::
-    :maxdepth: 2
-
-    backlog
     
-    ..
+.. 
     Indices and tables
     ==================
-    
+        
     * :ref:`genindex`
     * :ref:`modindex`
     * :ref:`search`

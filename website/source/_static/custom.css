@@ -1,0 +1,14 @@
+.noborder { 
+  border:0;
+  color:red;
+}
+
+.column3 {
+    width:29%;
+    float:left;
+    padding:1%;
+}
+
+.clear {
+    clear:both;
+}
