@@ -20,6 +20,7 @@ circuit that is small enough to fit into a 22mm tube, even when it’s build on 
    and is designed with a 2.54 mm raster for “through-hole” parts (including a DIL package μC). This makes it easy to
    solder and makes it possible to use standard breadboard and stripboard PCBs.
 
+Mira is in beta status. Some tiny enhancements might come up soon and it is going into the practical test phase.
 
 Features
 ========
@@ -107,7 +108,18 @@ by a PWM which controls the LEDs brightness.
 Firmware
 ========
 
-Like with any micro-controller, the μC in Mira must be programmed. (For an explanation )
+Both targets, the AT Tiny 45 as well as the AT Mega 328 must run with 1 MHz by the internal clock.
+This is the factory setting, so there is no need at all to change any fuse bits. The firmware can just be download to the μC as
+it comes from the shop. The process of “flashing” (programming) the μC is explained at “:ref:`users_programming`” on the “Users” page.
+
+Some background information for those who are intrested:
+Mira’s firmware is the result of the some first experiments of programming a μC as well as the result of some incremental enhanced design approaches.
+It was designed and refactored with the goal to have some fundamentals for the next circuit.
+All in all, the firmware’s flash footprint is bigger than necessary, but small enough to fit on the planned minimum target,
+the AT Tiny 45. Mira’s firmware needs ~4kByte (currently 4052 bytes) for the AT Tiny 45 P, and ~6kByte (currently 6202 bytes) for the AT Mega 328 P.
+The AT Mega firmware is bigger because of some debug and development feature available for the UART connection which runs with 4800 baud.
+
+
 
 Example PCB Arrangement
 =======================

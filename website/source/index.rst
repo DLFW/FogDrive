@@ -24,14 +24,15 @@
 Welcome to FogDrive
 ===================
 
-FogDrive is project that aims to provide free and open source electronics for controlling vaping devices.
+The FogDrive project aims to provide free and open source electronics for vaping devices, the so called “mods”.
 This includes the circuit specifications, parts lists, proposals on how to build the actual board
 and – last but not least – the firmware for the micro-controller which is part of the circuit.
 
 FogDrive is a free and open project, published under the `GNU General Public License`_, version 3.
 
 .. toctree::
-    
+    :hidden:
+
     mira
     users
     developers
@@ -70,38 +71,52 @@ Add some features or improve the circuits!
 FogDrive could definitely need some help by some electronic geeks, micro-controller hackers
 and even some modders who wants to figure out clever ways to integrate a FogDrive in self-build or reused mods.
 
+FogDrive in the Web
+===================
+
+FogDrive is hosted on on GitHub at https://github.com/FogDrive/FogDrive.
+
+
 Supporting FogDrive
 ===================
+
+FogDrive needs support!
+There are various ways to help the project. Using it and giving some feedback is the first one.
+Constructive feedback and simply knowing that people are using or intrested in FogDrive will increase the motivation. :)
+
+If you like the idea of FogDrive, you can support the Projekt also by making more people get to know about it.
+Mention it in a forum, at your regulars’ table or wherever you think other people could be intrested.
+
+Last but not least, you can help FogDrive by active participation. Get in contact via GitHub if you're intrested,
+or simply fork the project on GitHub. Especially electronic geeks could fill a significant competency gap. ;)
+For the long term goal of FogDrive – an up-to-date, fully regulated vaping circuit – it would be great to
+have people in the team that can contribute to the design of the voltage converter. But also firmware
+developers are welcome. Even if you would like to maintain the documentation or if you have an idea how enhance
+the projects basics (maybe you have an idea about a bigger Wiki or on how to produce cheap PCBs), you are
+welcome to get in contact! As for any hobbiest open source project, the projects stability depends on the team size.
+And as long as this is mostly a one-man show, the future of the project is always in danger.
 
 
 Future
 ======
 
-As of now, we have a few rought milestones in mind:
+Since Mira was just a simple “first shoot” to get the project running, the next FogDrive is already in the queue.
+After clarifying some questions about the repository structure and the build process, the development of **Vega**
+will start. As of now, the planned Features for the Vega FogDrive are:
 
-# Creating the base for second FogDrive.
+* MOSFET switch and battery voltage supervision as for Mira
+* Measurement of the vaporizer (coil) resistance
+* Vaporizer voltage control (step down) via PWM
+* Support for different user interfaces
 
-#. Creating a first circuit only passing the battery voltage unregulated, providing battery supervision and switching the device on and off
-#. Providing ready-to-use builds of the project
-#. Creating a second circuit providing a measurement of the vaporizers resistance
-#. Realizing a voltage regulation (maybe first a step down, later on also a boost conversion)
+The progress on Vega will highly depend on the private time that can be spend on this. Some support could increase 
+the development speed. ;)
 
-At least the last point is kind of a long-term goal.
-Of course, there will be some important in-between steps and other valuable features. But currently, there is no point for detailed planning, the next steps are clear and the vision is present. And as long as this is mostly a one-man show, the future of the project is always in danger. That brings us to the next point:
-
-For all of those out there that are interested to participate in the development: you are very welcome! Especially people who can contribute to the design of the voltage converters and electronic geeks in general could fill a significant gap. :) If you’re intrested, please mail to `fogdrive {ät} gmx.de` or – if you can stand the German language – join the `discussion at Dampfertreff <http://www.dampfertreff.de/t151555f130-freie-und-quelloffene-Regelelektronik-Unterstuetzung-gesucht.html>`_ (even the response might be more delayed).
-
-The very first control of the FogDrive project might probably be a simple MOSFET switch circuit, enhanced by a battery voltage measurement with a LED indicator and a multi-click on/off-switch. It might get enhanced then by a coil resistance measurement, a display and maybe some small fancy features.
+The great goal is a fully regulated control that can properly lower and increase the battery’s voltage without
+the PWM ripples but with a mostly smooth output voltage. If this can be archived depends also on the available time
+and support the project gets.
 
 
-    
-.. 
-    Indices and tables
-    ==================
-        
-    * :ref:`genindex`
-    * :ref:`modindex`
-    * :ref:`search`
 
   
 +----------------------------------------------------------------------------------------+
