@@ -74,7 +74,14 @@ and even some modders who wants to figure out clever ways to integrate a FogDriv
 FogDrive in the Web
 ===================
 
-FogDrive is hosted on on GitHub at https://github.com/FogDrive/FogDrive.
+FogDrive is hosted on on `GitHub`_ at https://github.com/FogDrive/FogDrive.
+
+If you have a GitHub account, feel free to use `Mira’s GitHub wiki`_ to get in contact.
+
+
+.. _GitHub: http://github.com
+
+.. _Mira’s GitHub wiki: https://github.com/FogDrive/FogDrive/wiki
 
 
 Supporting FogDrive
