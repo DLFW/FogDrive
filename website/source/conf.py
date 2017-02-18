@@ -22,6 +22,10 @@
 
 # -- General configuration ------------------------------------------------
 
+import alabaster
+
+html_theme_path = [alabaster.get_path()]
+
 # If your documentation needs a minimal Sphinx version, state it here.
 #
 # needs_sphinx = '1.0'
@@ -30,8 +34,9 @@
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
+    'alabaster',
     'sphinx.ext.mathjax',
-    'sphinx.ext.githubpages',
+    #'sphinx.ext.githubpages',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
