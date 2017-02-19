@@ -45,4 +45,6 @@ void ui_fire_is_off(void);
 
 void ui_print_led_info(void);
 
+void ui_switch_off_forced(void);
+
 #endif // UI_H

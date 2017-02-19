@@ -68,6 +68,7 @@ static uint8_t ui_local_bools = 0;
 #define LB_FIRE_IS_ON           2
 #define LB_LOW_VOLTAGE_DETECTED 4
 #define LB_VERY_LOW_VOLTAGE_DETECTED 8
+#define LB_SWITCH_OFF_FORCED    16
 
 /**
  * @brief Blends the LED from a value "from" to a value "to".
@@ -328,6 +329,18 @@ void ui_fire_is_off(void) {
     ui_local_bools &= ~LB_LOW_VOLTAGE_DETECTED;
     ui_local_bools &= ~LB_VERY_LOW_VOLTAGE_DETECTED;
     led_set_brightness(&led, 0);
+    if (ui_local_bools & LB_SWITCH_OFF_FORCED) {
+        ui_local_bools &= ~ LB_SWITCH_OFF_FORCED;
+        led_program_reset(&led);
+        led_program_add_linear_dim(&led, 99, 10);
+        led_program_add_linear_dim(&led, 0, 10);
+        led_program_repeat(&led,0,0);
+        led_start_program(&led);
+    }
+}
+
+void ui_switch_off_forced(void) {
+    ui_local_bools |= LB_SWITCH_OFF_FORCED;
 }
 
 void ui_print_led_info(void) {

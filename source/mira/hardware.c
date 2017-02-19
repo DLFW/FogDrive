@@ -156,7 +156,7 @@ void sm_bvm(void) {
             // and put the final result into the event queue
             QueueElement* e = queue_get_write_element(&hw_event_queue);
             e->bytes.a = HW__BATTERY_MEASURE;
-            e->bytes.b = (uint8_t) (sum / (BVM_SMOOTHING - 2));
+            e->bytes.b = ((uint8_t) (sum / (BVM_SMOOTHING - 2))) / 5;
             // go back to the idle state to wait for the next measurement instruction
             sm_bvm_status = SMS_BVM_IDLE;
             break;

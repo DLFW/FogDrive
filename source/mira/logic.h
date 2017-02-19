@@ -24,7 +24,7 @@
 
 #define BATTERY_VOLTAGE_LOW_VALUE 35
 #define BATTERY_VOLTAGE_VERY_LOW_VALUE 32
-#define BATTERY_VOLTAGE_STOP_VALUE 30
+#define BATTERY_VOLTAGE_STOP_VALUE 29
 
 extern uint8_t battery_voltage_unstressed;
 extern uint8_t battery_voltage_under_load;

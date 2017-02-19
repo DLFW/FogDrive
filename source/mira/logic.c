@@ -40,10 +40,13 @@ uint8_t global_state = GS_ON;           //external
 
 void logic_loop (void) {
     static uint16_t logic_main_cycle_counter = 0;           // contineously counts the cycles of the main loop and just overflows at its value range end back to 0
+    #ifdef UART_ENABLED
     static uint16_t last_logic_cycle_value = 0;             // stores the logic cycle count at each 50 ms event and is used to calc the delta
     static uint16_t last_logic_cycles_per_50ms_event = 0;   // stores the number of cycles that happened between the two last 50ms events
     static uint16_t min_logic_cycles_per_50ms_event = 0;    // stores the minimum value of the above variable throughout the whole uptime
+    #endif
     static uint8_t pulse_counter_for_battery_voltage_measurement = 0;   // counts 50ms events to trigger battery voltage measurements in regular intervals
+
 
     #ifdef UART_ENABLED
     deviface_putline("FogDrive  Copyright (C) 2016, the FogDrive Project");
@@ -106,6 +109,7 @@ void logic_loop (void) {
                 }
                 if (e->bytes.a == UI__50MS_PULSE) {
                     // 1) do the main cycle time measurement (for development purposes only)
+                    #ifdef UART_ENABLED
                     if (last_logic_cycle_value < logic_main_cycle_counter) {
                         // no overflow
                         last_logic_cycles_per_50ms_event = logic_main_cycle_counter - last_logic_cycle_value;
@@ -114,6 +118,7 @@ void logic_loop (void) {
                         }
                     }
                     last_logic_cycle_value = logic_main_cycle_counter;
+                    #endif
 
                     // 2) trigger cyclical battery voltage measurement
                     if (local_bools & LB_HW_IS_FIRING) {
@@ -121,12 +126,13 @@ void logic_loop (void) {
                             do_battery_measurement();
                             pulse_counter_for_battery_voltage_measurement = 0;
                         }
-                    } else {
-                        if (pulse_counter_for_battery_voltage_measurement == 40) { // every ~12s (256*50ms) when the mod is _not_ firing
-                            do_battery_measurement();   // we use "40" as compare value to give the battery 2s (40*50ms) to relax after stopping firing
-                            // we do not reset the (8 bit) counter but just let it overflow (to get the 256*50ms rhythm)
-                        }
                     }
+//                    else {
+//                        if (pulse_counter_for_battery_voltage_measurement == 40) { // every ~12s (256*50ms) when the mod is _not_ firing
+//                            do_battery_measurement();   // we use "40" as compare value to give the battery 2s (40*50ms) to relax after stopping firing
+//                            // we do not reset the (8 bit) counter but just let it overflow (to get the 256*50ms rhythm)
+//                        }
+//                    }
                     ++pulse_counter_for_battery_voltage_measurement;
                 }
             }
@@ -145,9 +151,14 @@ void logic_loop (void) {
                 }
                 else if (e->bytes.a == HW__BATTERY_MEASURE) {
                     if (local_bools & LB_HW_IS_FIRING) {
-                        battery_voltage_under_load = e->bytes.b / 5;   // hw module gives the voltage in 20mV steps...
+                        battery_voltage_under_load = e->bytes.b;
+                        // check if the battery voltage has dropped so low that we have to block firing
+                        if (battery_voltage_under_load <= BATTERY_VOLTAGE_STOP_VALUE) {
+                            ui_switch_off_forced();
+                            hardware_fire_off();
+                        }
                     } else {
-                        battery_voltage_unstressed = e->bytes.b / 5;   // ...but in the logic and the UI module, we process it in 0.1V steps
+                        battery_voltage_unstressed = e->bytes.b;
                     }
                     #ifdef UART_ENABLED
                     if (local_bools & LB_PRINT_BVMS) {
