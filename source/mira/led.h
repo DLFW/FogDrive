@@ -23,7 +23,12 @@
 
 #define _LED_MAX_COMMAND_COUNT 12
 
-typedef struct {
+typedef struct LED LED;
+typedef struct LEDCommand LEDCommand;
+
+typedef void (*LedProgramCallback)(LED*);
+
+struct LEDCommand {
     uint8_t cmd;
     union {
         struct {
@@ -51,18 +56,21 @@ typedef struct {
             uint8_t _start_brightness;
             uint8_t _target_brightness;
         } dim_linear;
+        struct {
+            LedProgramCallback _callback;
+        } callback;
     };
-} LEDCommand;
+};
 
-
-typedef struct {
+struct LED {
     uint8_t* _compare_register_address;
     uint8_t _step_count;
     uint8_t _current_brightness;
     uint8_t _current_command_ix; // [0.._LED_MAX_COMMAND_COUNT-1] as index for the command, 255 for "no command"
     uint8_t _command_count;
     LEDCommand _commands[_LED_MAX_COMMAND_COUNT];
-} LED;
+};
+
 
 
 void led_init_led(LED* led, uint8_t* compare_register_address);
@@ -81,6 +89,9 @@ void led_program_add_hold(LED* led, uint8_t duration);
 
 void led_program_repeat(LED* led, uint8_t from_step, uint8_t number);
 
+void led_program_callback(LED* led, LedProgramCallback callback_fct);
+
 void led_start_program(LED* led);
 
 #endif // LED_H
+

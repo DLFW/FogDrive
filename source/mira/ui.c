@@ -72,13 +72,11 @@ static uint8_t ui_local_bools = 0;
 /**
  * @brief Blends the LED from a value "from" to a value "to".
  */
-void led_blend(uint8_t from, uint8_t to) {
+void led_blend(void) {
     led_program_reset(&led);
-//    led_program_add_hold(&led,4);
-    led_program_add_brightness(&led, from);
-    led_program_add_linear_dim(&led, to, 50);
     led_program_add_brightness(&led, 0);
-//    led_program_add_hold(&led,1);
+    led_program_add_linear_dim(&led, 99, 50);
+    led_program_add_brightness(&led, 0);
     led_start_program(&led);
 }
 
@@ -105,7 +103,7 @@ uint8_t ui_init(void) {
     // init button logic
     button_init(&button);
 
-    ui_power_up();
+    led_blend();
 
     return 0;
 }
@@ -183,6 +181,11 @@ void _print_led_commands(LED* led) {
 #endif
 }
 
+void _callback_for_shutdown(LED *led) {
+    // we are switched on (awake) and switch off now (go to sleep)
+    QueueElement* e = queue_get_write_element(&ui_event_queue);
+    e->bytes.a = UI__SWITCH_OFF;
+}
 
 void ui_input_step(void) {
 
@@ -233,35 +236,39 @@ void ui_input_step(void) {
                 switch (button_event->bytes.b) {
                     case 2:
                     {
-                        // double click detected: "blink" the battery voltage under load
-                        uint8_t digit1 = battery_voltage_under_load / 10;
-                        uint8_t digit2 = battery_voltage_under_load - digit1*10;
-                        led_set_brightness(&led, 0);
-                        led_program_reset(&led);
-                        led_program_add_linear_dim(&led, 99, 3);
-                        led_program_add_hold(&led, 13);
-                        led_program_add_linear_dim(&led, 0, 3);
-                        led_program_add_hold(&led, 20);
-                        led_program_repeat(&led, 0, digit1 - 1);
-                        led_program_add_hold(&led,45);
-                        if (digit2 > 0) {
+                        if (battery_voltage_under_load > 0) {
+                            // double click detected: "blink" the battery voltage under load
+                            uint8_t digit1 = battery_voltage_under_load / 10;
+                            uint8_t digit2 = battery_voltage_under_load - digit1*10;
+                            led_set_brightness(&led, 0);
+                            led_program_reset(&led);
                             led_program_add_linear_dim(&led, 99, 3);
                             led_program_add_hold(&led, 13);
                             led_program_add_linear_dim(&led, 0, 3);
                             led_program_add_hold(&led, 20);
-                            if (digit2 > 1) {
-                                led_program_repeat(&led, 6, digit2 - 1);
+                            led_program_repeat(&led, 0, digit1 - 1);
+                            led_program_add_hold(&led,45);
+                            if (digit2 > 0) {
+                                led_program_add_linear_dim(&led, 99, 3);
+                                led_program_add_hold(&led, 13);
+                                led_program_add_linear_dim(&led, 0, 3);
+                                led_program_add_hold(&led, 20);
+                                if (digit2 > 1) {
+                                    led_program_repeat(&led, 6, digit2 - 1);
+                                }
                             }
+                            led_start_program(&led);
                         }
-                        led_start_program(&led);
                         break;
                     }
                     case 4:
                     {
-                        led_blend(99,0);
-                        // we are switched on (awake) and switch off now (go to sleep)
-                        QueueElement* e = queue_get_write_element(&ui_event_queue);
-                        e->bytes.a = UI__SWITCH_OFF;
+                        led_program_reset(&led);
+                        led_program_add_brightness(&led, 99);
+                        led_program_add_linear_dim(&led, 0, 50);
+                        led_program_add_brightness(&led, 0);
+                        led_program_callback(&led, _callback_for_shutdown);
+                        led_start_program(&led);
                     }
                 }
             }
@@ -318,11 +325,9 @@ void ui_fire_is_on(void) {
 
 void ui_fire_is_off(void) {
     ui_local_bools &= ~LB_FIRE_IS_ON;
-    led_program_reset(&led);
-    led_program_add_linear_dim(&led, 0, 5);
-    led_start_program(&led);
     ui_local_bools &= ~LB_LOW_VOLTAGE_DETECTED;
     ui_local_bools &= ~LB_VERY_LOW_VOLTAGE_DETECTED;
+    led_set_brightness(&led, 0);
 }
 
 void ui_print_led_info(void) {
@@ -337,5 +342,5 @@ void ui_power_down() {
 }
 
 void ui_power_up() {
-    led_blend(0,99);
+    led_blend();
 }

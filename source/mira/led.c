@@ -46,9 +46,10 @@ static const uint8_t led_pwmtable[100] PROGMEM =        // created by "valuearra
 // The highest value for an instant command must be specified as HIGHEST_INSTAND_COMMAND_VALUE.
 #define COMMAND_SET_BRIGTHNESS  0
 #define COMMAND_REPEAT          1
-#define COMMAND_HOLD            2
-#define COMMAND_DIM_LINEAR      3
-#define HIGHEST_INSTAND_COMMAND_VALUE 1
+#define COMMAND_CALLBACK        2
+#define COMMAND_HOLD            3
+#define COMMAND_DIM_LINEAR      4
+#define HIGHEST_INSTAND_COMMAND_VALUE 2
 
 
 void led_init_led(LED* led, uint8_t *compare_register_address) {
@@ -101,6 +102,12 @@ void led_program_add_linear_dim(LED* led, uint8_t brightness, uint8_t ramp_durat
     command->dim_linear._target_brightness = brightness;
 }
 
+void led_program_callback(LED* led, LedProgramCallback callback_fct) {
+    LEDCommand* command = _get_command_to_add(led);
+    command->cmd = COMMAND_CALLBACK;
+    command->callback._callback = callback_fct;
+}
+
 void _led_set_brightness(LED* led, uint8_t brightness) {
     if (brightness > 99) {
         brightness = 99;
@@ -138,6 +145,9 @@ void _next_command(LED* led) {
                         cmd->repeat.counter = 0; // ...but set the counter back which is needed if we have nested repeats
                     }
                     break;
+                }
+                case COMMAND_CALLBACK: {
+                    led->_commands[led->_current_command_ix].callback._callback(led);
                 }
             }
         }
