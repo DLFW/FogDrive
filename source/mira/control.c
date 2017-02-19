@@ -33,7 +33,6 @@ int main (void)
     #endif
     hardware_init();
     ui_init();
-    logic_init();
 
     sei();
     logic_loop();

@@ -59,9 +59,9 @@ typedef struct {
     uint8_t* _compare_register_address;
     uint8_t _step_count;
     uint8_t _current_brightness;
-    LEDCommand _commands[_LED_MAX_COMMAND_COUNT];
-    uint8_t _current_command_ix; // [0..9] as index for the command, 255 for "no command"
+    uint8_t _current_command_ix; // [0.._LED_MAX_COMMAND_COUNT-1] as index for the command, 255 for "no command"
     uint8_t _command_count;
+    LEDCommand _commands[_LED_MAX_COMMAND_COUNT];
 } LED;
 
 

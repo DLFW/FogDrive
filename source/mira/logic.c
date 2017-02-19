@@ -34,17 +34,9 @@ static uint8_t local_bools = 0;
 #define LB_HW_IS_FIRING   1     // if true, hardware is currently firing
 #define LB_PRINT_BVMS     2     // if true, the battery voltage is printed each time its received (set via deviface)
 
-uint8_t battery_voltage_unstressed; //external
-uint8_t battery_voltage_under_load; //external
-uint8_t global_state;               //external
-
-uint8_t logic_init(void) {
-    battery_voltage_unstressed = 37;
-    battery_voltage_under_load = 37;
-    global_state = GS_ON;
-    local_bools = 0;
-    return 0;
-}
+uint8_t battery_voltage_unstressed = 0; //external
+uint8_t battery_voltage_under_load = 0; //external
+uint8_t global_state = GS_ON;           //external
 
 void logic_loop (void) {
     static uint16_t logic_main_cycle_counter = 0;           // contineously counts the cycles of the main loop and just overflows at its value range end back to 0

@@ -18,11 +18,11 @@
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
+#include <avr/delay.h>
 #include "ui.h"
 #include "logic.h"
 #include "led.h"
 #include "button.h"
-#include <avr/pgmspace.h>
 #include MCUHEADER
 #ifdef UART_ENABLED
     #include "deviface.h"
@@ -63,25 +63,26 @@ static LED led;
 
 static Button button;
 
-static uint8_t ui_local_bools;
+static uint8_t ui_local_bools = 0;
 #define LB_PRINT_LED_INFO       1
 #define LB_FIRE_IS_ON           2
 #define LB_LOW_VOLTAGE_DETECTED 4
 #define LB_VERY_LOW_VOLTAGE_DETECTED 8
 
-void led_blink(void) {
+/**
+ * @brief Blends the LED from a value "from" to a value "to".
+ */
+void led_blend(uint8_t from, uint8_t to) {
     led_program_reset(&led);
-    led_program_add_hold(&led,4);
-    led_program_add_brightness(&led, 99);
-    led_program_add_linear_dim(&led, 0, 50);
-    led_program_add_hold(&led,1);
+//    led_program_add_hold(&led,4);
+    led_program_add_brightness(&led, from);
+    led_program_add_linear_dim(&led, to, 50);
+    led_program_add_brightness(&led, 0);
+//    led_program_add_hold(&led,1);
     led_start_program(&led);
 }
 
 uint8_t ui_init(void) {
-
-    ui_local_bools = 0;
-
     // init queues
     queue_initialize(&ui_event_queue, 4, ui_event_queue_elements);
     queue_initialize(&low_level_event_queue, 3, low_level_event_queue_array);
@@ -104,7 +105,7 @@ uint8_t ui_init(void) {
     // init button logic
     button_init(&button);
 
-    led_blink();
+    ui_power_up();
 
     return 0;
 }
@@ -257,7 +258,7 @@ void ui_input_step(void) {
                     }
                     case 4:
                     {
-                        led_blink();
+                        led_blend(99,0);
                         // we are switched on (awake) and switch off now (go to sleep)
                         QueueElement* e = queue_get_write_element(&ui_event_queue);
                         e->bytes.a = UI__SWITCH_OFF;
@@ -285,24 +286,26 @@ void ui_input_step(void) {
 
         // Battery voltage indicator
         if (ui_local_bools & LB_FIRE_IS_ON) {
-            if (battery_voltage_under_load < BATTERY_VOLTAGE_LOW_VALUE) {
-                if (! (ui_local_bools & LB_LOW_VOLTAGE_DETECTED)) {
-                    ui_local_bools |= LB_LOW_VOLTAGE_DETECTED;
-                    led_program_reset(&led);
-                    led_program_add_linear_dim(&led, 87, 20);
-                    led_start_program(&led);
+            if (battery_voltage_under_load > 0) {
+                if (battery_voltage_under_load < BATTERY_VOLTAGE_LOW_VALUE) {
+                    if (! (ui_local_bools & LB_LOW_VOLTAGE_DETECTED)) {
+                        ui_local_bools |= LB_LOW_VOLTAGE_DETECTED;
+                        led_program_reset(&led);
+                        led_program_add_linear_dim(&led, 87, 20);
+                        led_start_program(&led);
+                    }
                 }
-            }
-            if (battery_voltage_under_load < BATTERY_VOLTAGE_VERY_LOW_VALUE) {
-                if (! (ui_local_bools & LB_VERY_LOW_VOLTAGE_DETECTED)) {
-                    ui_local_bools |= LB_VERY_LOW_VOLTAGE_DETECTED;
-                    led_program_reset(&led);
-                    led_program_add_linear_dim(&led, 99, 10);
-                    led_program_add_hold(&led,22);
-                    led_program_add_linear_dim(&led, 0, 10);
-                    led_program_add_hold(&led,8);
-                    led_program_repeat(&led,0,0);
-                    led_start_program(&led);
+                if (battery_voltage_under_load < BATTERY_VOLTAGE_VERY_LOW_VALUE) {
+                    if (! (ui_local_bools & LB_VERY_LOW_VOLTAGE_DETECTED)) {
+                        ui_local_bools |= LB_VERY_LOW_VOLTAGE_DETECTED;
+                        led_program_reset(&led);
+                        led_program_add_linear_dim(&led, 99, 10);
+                        led_program_add_hold(&led,22);
+                        led_program_add_linear_dim(&led, 0, 10);
+                        led_program_add_hold(&led,8);
+                        led_program_repeat(&led,0,0);
+                        led_start_program(&led);
+                    }
                 }
             }
         }
@@ -327,12 +330,12 @@ void ui_print_led_info(void) {
 }
 
 void ui_power_down() {
-    led_program_reset(&led);        // cancel any LED program if some is running
-    led_set_brightness(&led, 0);    // switch of the LED
+    led_set_brightness(&led, 0);    // cancel any LED program if some is running and switch off the LED
     queue_clear(&ui_event_queue);   // remove unprocessed UI events if there are any
+    _delay_ms(100);
     // the UI timer ISR is just freezed as it is
 }
 
 void ui_power_up() {
-    led_blink();
+    led_blend(0,99);
 }
