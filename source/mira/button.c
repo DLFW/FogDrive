@@ -23,6 +23,7 @@
 #define BTSMS_CLICK_DOWN    1   // button pressed and within click duration
 #define BTSMS_CLICK_UP      2   // button released after click, release state is so short that another click of the same click sequence could happen
 #define BTSMS_PRESSED       3   // button fully pressed, not a click
+#define BTSMS_TIMEOUT       4   // button ran into timeout while in pressed state
 
 
 void button_init(Button* button) {
@@ -32,6 +33,7 @@ void button_init(Button* button) {
     button->_state = BTSMS_IDLE;
     button->_local_step_count = 0;
     button->_click_count = 0;
+    button->_press_timeout = 0;
 }
 
 void button_pressed(Button* button) {
@@ -51,9 +53,9 @@ void button_pressed(Button* button) {
                 button->_state = BTSMS_CLICK_DOWN;  // next click started (or maybe refusal of clicking sequence by pressing too long later)
                 break;
         }
+        case BTSMS_TIMEOUT:
         case BTSMS_PRESSED: {
-                button->_state = BTSMS_IDLE;        // should never happen, two pressed events without a release; go to idle for safety...
-                break;
+                break;  // should never happen, two pressed events without a release; go to idle for safety...
         }
     }
 }
@@ -73,9 +75,10 @@ void button_released(Button* button) {
                 button->_state = BTSMS_IDLE;        // should never happen, two released events without a pressed; go to idle for safety...
                 break;
         }
-        case BTSMS_PRESSED: {                       // button released after beeing "pressed": emmit released event
+        case BTSMS_TIMEOUT:
+        case BTSMS_PRESSED: {                       // button released after beeing "pressed"
                 QueueElement* e = queue_get_write_element(&(button->button_event_queue));
-                e->bytes.a = BUTTON_EVENT_RELEASED;
+                e->bytes.a = (button->_state == BTSMS_PRESSED ? BUTTON_EVENT_RELEASED: BUTTON_EVENT_RELEASED_TIMEOUT);
                 e->bytes.b = 0;
                 button->_state = BTSMS_IDLE;
                 break;
@@ -84,22 +87,24 @@ void button_released(Button* button) {
 }
 
 void button_step(Button* button){
+    button->_local_step_count++;
     switch (button->_state) {
+        case BTSMS_TIMEOUT:
         case BTSMS_IDLE: {
                 break;                              // nothing to do
         }
         case BTSMS_CLICK_DOWN: {
-                button->_local_step_count++;
+
                 if (button->_local_step_count > button->_click_press_duration) {        // button fully pressed: emmit pressed event
                     QueueElement* e = queue_get_write_element(&(button->button_event_queue));
                     e->bytes.a = BUTTON_EVENT_PRESSED;
                     e->bytes.b = 0;
                     button->_state = BTSMS_PRESSED;
+                    button->_local_step_count = 0;
                 }
                 break;
         }
         case BTSMS_CLICK_UP: {
-                button->_local_step_count++;
                 if (button->_local_step_count > button->_click_release_duration) {     // click sequence done
                     button->_state = BTSMS_IDLE;
                     QueueElement* e = queue_get_write_element(&(button->button_event_queue));
@@ -109,7 +114,13 @@ void button_step(Button* button){
                 break;
         }
         case BTSMS_PRESSED: {
-                break;                              // nothing to do, press time limitation can be implemented here
+                if (button->_press_timeout > 0 && button->_local_step_count > button->_press_timeout) {
+                    QueueElement* e = queue_get_write_element(&(button->button_event_queue));
+                    e->bytes.a = BUTTON_EVENT_TIMEOUT;
+                    e->bytes.b = 0;
+                    button->_state = BTSMS_TIMEOUT;
+                }
+                break;
         }
     }
 }

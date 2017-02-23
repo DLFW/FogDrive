@@ -46,6 +46,8 @@
 #define BUTTON_EVENT_RELEASED   0
 #define BUTTON_EVENT_PRESSED    1
 #define BUTTON_EVENT_CLICK      2 // number of clicks in second byte
+#define BUTTON_EVENT_TIMEOUT    3
+#define BUTTON_EVENT_RELEASED_TIMEOUT    4
 
 typedef struct {
     Queue button_event_queue;
@@ -55,6 +57,7 @@ typedef struct {
     uint8_t _click_release_duration;
     uint8_t _local_step_count;
     uint8_t _click_count;
+    uint8_t _press_timeout;
 } Button;
 
 /**
