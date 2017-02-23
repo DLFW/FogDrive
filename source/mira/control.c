@@ -21,6 +21,7 @@
 #include "logic.h"
 #include "hardware.h"
 #include "ui.h"
+#include MCUHEADER
 
 #ifdef UART_ENABLED
     #include "deviface.h"
