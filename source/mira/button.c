@@ -33,7 +33,7 @@ void button_init(Button* button) {
     button->_state = BTSMS_IDLE;
     button->_local_step_count = 0;
     button->_click_count = 0;
-    button->_press_timeout = 0;
+    button->_press_timeout = 160;
 }
 
 void button_pressed(Button* button) {

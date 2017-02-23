@@ -210,7 +210,7 @@ void ui_input_step(void) {
     if (global_state == GS_AWAKENING) {
         QueueElement* button_event = queue_get_read_element(&(button.button_event_queue));
         if (button_event != 0) {
-            if (button_event->bytes.a == BUTTON_EVENT_CLICK & button_event->bytes.b == 4) {
+            if (button_event->bytes.a == BUTTON_EVENT_CLICK & button_event->bytes.b == 3) {
                 QueueElement* e = queue_get_write_element(&ui_event_queue);
                 e->bytes.a = UI__SWITCH_ON;
             } else {
@@ -222,55 +222,71 @@ void ui_input_step(void) {
     } else {
         QueueElement* button_event = queue_get_read_element(&(button.button_event_queue));
         if (button_event != 0) {
-            if (button_event->bytes.a == BUTTON_EVENT_PRESSED) {
-                // button pressed: fire!
-                QueueElement* e = queue_get_write_element(&ui_event_queue);
-                e->bytes.a = UI__FIRE_BUTTON_PRESSED;
-            }
-            if (button_event->bytes.a == BUTTON_EVENT_RELEASED) {
-                //button released: fire off!
-                QueueElement* e = queue_get_write_element(&ui_event_queue);
-                e->bytes.a = UI__FIRE_BUTTON_RELEASED;
-            }
-            if (button_event->bytes.a == BUTTON_EVENT_CLICK) {
-                // click sequence detected
-                switch (button_event->bytes.b) {
-                    case 2:
-                    {
-                        if (battery_voltage_under_load > 0) {
-                            // double click detected: "blink" the battery voltage under load
-                            uint8_t digit1 = battery_voltage_under_load / 10;
-                            uint8_t digit2 = battery_voltage_under_load - digit1*10;
-                            led_set_brightness(&led, 0);
-                            led_program_reset(&led);
-                            led_program_add_linear_dim(&led, 99, 3);
-                            led_program_add_hold(&led, 13);
-                            led_program_add_linear_dim(&led, 0, 3);
-                            led_program_add_hold(&led, 20);
-                            led_program_repeat(&led, 0, digit1 - 1);
-                            led_program_add_hold(&led,45);
-                            if (digit2 > 0) {
+            switch (button_event->bytes.a) {
+                case BUTTON_EVENT_PRESSED: {
+                    // button pressed: fire!
+                    QueueElement* e = queue_get_write_element(&ui_event_queue);
+                    e->bytes.a = UI__FIRE_BUTTON_PRESSED;
+                    break;
+                }
+                case BUTTON_EVENT_RELEASED_TIMEOUT: {
+                    led_blend();
+                    break;
+                }
+                case BUTTON_EVENT_TIMEOUT:
+                case BUTTON_EVENT_RELEASED: {
+                    //button released: fire off!
+                    QueueElement* e = queue_get_write_element(&ui_event_queue);
+                    e->bytes.a = UI__FIRE_BUTTON_RELEASED;
+                    break;
+                }
+                case BUTTON_EVENT_CLICK: {
+                    // click sequence detected
+                    switch (button_event->bytes.b) {
+                        case 1:
+                        {
+                            led_blend();
+                            break;
+                        }
+
+                        case 2:
+                        {
+                            if (battery_voltage_under_load > 0) {
+                                // double click detected: "blink" the battery voltage under load
+                                uint8_t digit1 = battery_voltage_under_load / 10;
+                                uint8_t digit2 = battery_voltage_under_load - digit1*10;
+                                led_set_brightness(&led, 0);
+                                led_program_reset(&led);
                                 led_program_add_linear_dim(&led, 99, 3);
                                 led_program_add_hold(&led, 13);
                                 led_program_add_linear_dim(&led, 0, 3);
                                 led_program_add_hold(&led, 20);
-                                if (digit2 > 1) {
-                                    led_program_repeat(&led, 6, digit2 - 1);
+                                led_program_repeat(&led, 0, digit1 - 1);
+                                led_program_add_hold(&led,45);
+                                if (digit2 > 0) {
+                                    led_program_add_linear_dim(&led, 99, 3);
+                                    led_program_add_hold(&led, 13);
+                                    led_program_add_linear_dim(&led, 0, 3);
+                                    led_program_add_hold(&led, 20);
+                                    if (digit2 > 1) {
+                                        led_program_repeat(&led, 6, digit2 - 1);
+                                    }
                                 }
+                                led_start_program(&led);
                             }
+                            break;
+                        }
+                        case 3:
+                        {
+                            led_program_reset(&led);
+                            led_program_add_brightness(&led, 99);
+                            led_program_add_linear_dim(&led, 0, 50);
+                            led_program_add_brightness(&led, 0);
+                            led_program_callback(&led, _callback_for_shutdown);
                             led_start_program(&led);
                         }
-                        break;
                     }
-                    case 4:
-                    {
-                        led_program_reset(&led);
-                        led_program_add_brightness(&led, 99);
-                        led_program_add_linear_dim(&led, 0, 50);
-                        led_program_add_brightness(&led, 0);
-                        led_program_callback(&led, _callback_for_shutdown);
-                        led_start_program(&led);
-                    }
+                    break;
                 }
             }
         }
