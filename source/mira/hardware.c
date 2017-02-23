@@ -96,6 +96,7 @@ void sm_bvm(void) {
                 battery_voltage_values_ix = 0;
                 sm_bvm_status = SMS_BVM_MEASURING;
                 make_measurement = 0;
+                battery_voltage_sum = 0;
             }
             break;
         }
@@ -106,12 +107,7 @@ void sm_bvm(void) {
                 uint8_t adc_high = ADCH;    // get the high byte of the measured value
                 uint16_t adc_result = (adc_high<<8) | adc_low; //put the 16 bit measurement result together
                 uint16_t vcc =  AVR_INTERNAL_REFERENCE_VOLTAGE / adc_result;   //turn the raw adc value into milli volt
-#ifdef UART_ENABLED
-deviface_put_uint16(vcc);
-deviface_putlineend();
-#endif
-
-                battery_voltage_sum += (vcc / 20);
+                battery_voltage_sum += vcc;
                 if (++battery_voltage_values_ix == BVM_SMOOTHING) {
                     sm_bvm_status = SMS_BVM_CALCULATING;
                 } else {
@@ -124,7 +120,7 @@ deviface_putlineend();
             // and put the final result into the event queue
             QueueElement* e = queue_get_write_element(&hw_event_queue);
             e->bytes.a = HW__BATTERY_MEASURE;
-            e->bytes.b = ((uint8_t) (battery_voltage_sum / (BVM_SMOOTHING))) / 5;
+            e->bytes.b = (uint8_t) (battery_voltage_sum / (BVM_SMOOTHING * 100));
             // go back to the idle state to wait for the next measurement instruction
             sm_bvm_status = SMS_BVM_IDLE;
             break;
