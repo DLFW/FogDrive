@@ -34,7 +34,6 @@ static uint8_t local_bools = 0;
 #define LB_HW_IS_FIRING   1     // if true, hardware is currently firing
 #define LB_PRINT_BVMS     2     // if true, the battery voltage is printed each time its received (set via deviface)
 
-uint8_t battery_voltage_unstressed = 0; //external
 uint8_t battery_voltage_under_load = 0; //external
 uint8_t global_state = GS_ON;           //external
 
@@ -157,8 +156,6 @@ void logic_loop (void) {
                             ui_switch_off_forced();
                             hardware_fire_off();
                         }
-                    } else {
-                        battery_voltage_unstressed = e->bytes.b;
                     }
                     #ifdef UART_ENABLED
                     if (local_bools & LB_PRINT_BVMS) {
@@ -202,14 +199,9 @@ void logic_loop (void) {
                 if (strcmp(in_string, "ui leds") == 0) {
                     ui_print_led_info();
                 }
-                if (strcmp(in_string, "bvl") == 0) {
+                if (strcmp(in_string, "bv") == 0) {
                     deviface_putstring("Battery voltage under load: ");
                     deviface_put_uint8(battery_voltage_under_load);
-                    deviface_putstring("\n\r");
-                }
-                if (strcmp(in_string, "bv") == 0) {
-                    deviface_putstring("Battery voltage unstressed: ");
-                    deviface_put_uint8(battery_voltage_unstressed);
                     deviface_putstring("\n\r");
                 }
                 if (strcmp(in_string, "p bvm on") == 0) {
