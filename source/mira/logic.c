@@ -52,7 +52,7 @@ void logic_loop (void) {
     deviface_putline("FogDrive  Copyright (C) 2016, the FogDrive Project");
     deviface_putline("This program is free software and comes with ABSOLUTELY NO WARRANTY.");
     deviface_putline("It is licensed under the GPLv3 (see <http://www.gnu.org/licenses/#GPL>).");
-    deviface_putline("\r\nHi! This is the Mira 0 FogDrive.\r\n");
+    deviface_putline("\r\nHi! This is the Mira FogDrive.\r\n");
     #endif
 
     // lets enter the main loop

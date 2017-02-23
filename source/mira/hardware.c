@@ -41,7 +41,7 @@ uint8_t make_measurement = 0;
 
 #define AVR_INTERNAL_REFERENCE_VOLTAGE 1100000L     // in 10^(-6) V
 #define BVM_SMOOTHING 4
-uint8_t battery_voltage_values[BVM_SMOOTHING];
+uint16_t battery_voltage_sum = 0;
 uint8_t battery_voltage_values_ix = 0;
 
 Queue hw_event_queue;
@@ -106,7 +106,12 @@ void sm_bvm(void) {
                 uint8_t adc_high = ADCH;    // get the high byte of the measured value
                 uint16_t adc_result = (adc_high<<8) | adc_low; //put the 16 bit measurement result together
                 uint16_t vcc =  AVR_INTERNAL_REFERENCE_VOLTAGE / adc_result;   //turn the raw adc value into milli volt
-                battery_voltage_values[battery_voltage_values_ix] = vcc / 20;
+#ifdef UART_ENABLED
+deviface_put_uint16(vcc);
+deviface_putlineend();
+#endif
+
+                battery_voltage_sum += (vcc / 20);
                 if (++battery_voltage_values_ix == BVM_SMOOTHING) {
                     sm_bvm_status = SMS_BVM_CALCULATING;
                 } else {
@@ -116,47 +121,10 @@ void sm_bvm(void) {
             break;
         }
         case SMS_BVM_CALCULATING: {
-            // we do a combination of a median and an averrage smoothing here: the highest and the lowest value are thrown, the
-            // other values are used to calculate an avverage value which is considered the final result
-            uint8_t min_ix = 0;
-            uint8_t min_value = 255;
-            uint8_t max_ix = 0;
-            uint8_t max_value = 0;
-            // identify the lowest and highest value of all measurements
-            for (battery_voltage_values_ix = 0; battery_voltage_values_ix < BVM_SMOOTHING; battery_voltage_values_ix++) {
-                if (battery_voltage_values[battery_voltage_values_ix] < min_value) {
-                    min_value = battery_voltage_values[battery_voltage_values_ix];
-                    min_ix = battery_voltage_values_ix;
-                }
-                if (battery_voltage_values[battery_voltage_values_ix] > max_value) {
-                    max_value = battery_voltage_values[battery_voltage_values_ix];
-                    max_ix = battery_voltage_values_ix;
-                }
-                if (battery_voltage_values_ix == 1) {
-                    if (max_ix == min_ix) {
-                        min_ix = 1;
-                    }
-                    // If all four measured values are equal, min and max ix would be the same without this check.
-                    // That would make the the summing below fail.
-                }
-            }
-            // sum up all values that are not the lowest or the highest value
-            uint16_t sum = 0;
-            for (battery_voltage_values_ix = 0; battery_voltage_values_ix < BVM_SMOOTHING; battery_voltage_values_ix++) {
-                if (
-                        (battery_voltage_values_ix != min_ix)
-                        &&
-                        (battery_voltage_values_ix != max_ix)
-                   )
-                {
-                    sum += battery_voltage_values[battery_voltage_values_ix];
-                }
-            }
-            // divide the sum by the total number of measurements minus two (the lowest and highest value that has been thrown)
             // and put the final result into the event queue
             QueueElement* e = queue_get_write_element(&hw_event_queue);
             e->bytes.a = HW__BATTERY_MEASURE;
-            e->bytes.b = ((uint8_t) (sum / (BVM_SMOOTHING - 2))) / 5;
+            e->bytes.b = ((uint8_t) (battery_voltage_sum / (BVM_SMOOTHING))) / 5;
             // go back to the idle state to wait for the next measurement instruction
             sm_bvm_status = SMS_BVM_IDLE;
             break;
